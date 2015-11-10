@@ -43,7 +43,7 @@
 
 Name:           golang
 Version:        1.4.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -449,7 +449,7 @@ cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
 mkdir -p %{buildrooti}
 
 #Go macros, only for old fedora and EPEL
-%if 0%{?rhel} > 6 || 0%{?fedora} < 21
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
 %if 0%{?rhel} > 6 || 0%{?fedora} > 0
 mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
 cp -av %{SOURCE102} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
@@ -556,7 +556,7 @@ fi
 # prelink blacklist
 %{_sysconfdir}/prelink.conf.d
 
-%if 0%{?rhel} > 6 || 0%{?fedora} < 21
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
 %if 0%{?rhel} > 6 || 0%{?fedora} > 0
 %{_rpmconfigdir}/macros.d/macros.golang
 %else
@@ -748,6 +748,9 @@ fi
 
 
 %changelog
+* Tue Nov 10 2015 Jakub Čajka <jcajka@fedoraproject.org> - 1.4.3-2
+- include golang macros on EPEL6
+
 * Mon Nov 09 2015 Jakub Čajka <jcajka@fedoraproject.org> - 1.4.3-1
 - Rebase to 1.4.3
 
