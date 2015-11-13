@@ -1,0 +1,21 @@
+diff -up go/src/syscall/exec_linux_test.go.groups go/src/syscall/exec_linux_test.go
+--- go/src/syscall/exec_linux_test.go.groups	2015-11-12 06:19:58.000000000 +0100
++++ go/src/syscall/exec_linux_test.go	2015-11-13 11:08:43.145889611 +0100
+@@ -77,7 +77,7 @@ func TestCloneNEWUSERAndRemapRootEnableS
+ 	testNEWUSERRemap(t, 0, 0, false)
+ }
+ 
+-func TestCloneNEWUSERAndRemapNoRootDisableSetgroups(t *testing.T) {
++func testCloneNEWUSERAndRemapNoRootDisableSetgroups(t *testing.T) {
+ 	if os.Getuid() == 0 {
+ 		t.Skip("skipping unprivileged user only test")
+ 	}
+@@ -98,7 +98,7 @@ func TestCloneNEWUSERAndRemapNoRootSetgr
+ 	}
+ }
+ 
+-func TestEmptyCredGroupsDisableSetgroups(t *testing.T) {
++func testEmptyCredGroupsDisableSetgroups(t *testing.T) {
+ 	cmd := whoamiCmd(t, os.Getuid(), os.Getgid(), false)
+ 	cmd.SysProcAttr.Credential = &syscall.Credential{}
+ 	if err := cmd.Run(); err != nil {
