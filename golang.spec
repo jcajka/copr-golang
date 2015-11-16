@@ -22,6 +22,11 @@
 %global __spec_install_post /usr/lib/rpm/check-rpaths   /usr/lib/rpm/check-buildroot  \
   /usr/lib/rpm/brp-compress
 
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%global gopath          %{_datadir}/gocode
+%global golang_arches       %{ix86} x86_64 %{arm}
+%endif
+
 # Golang build options.
 
 # Buid golang using external/internal(close to cgo disabled) linking.
@@ -60,11 +65,6 @@
 %global shared 1
 %else
 %global shared 0
-%endif
-
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%global gopath          %{_datadir}/gocode
-%global golang_arches       %{ix86} x86_64 %{arm}
 %endif
 
 # Fedora GOROOT
