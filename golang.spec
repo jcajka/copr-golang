@@ -62,6 +62,11 @@
 %global shared 0
 %endif
 
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%global gopath          %{_datadir}/gocode
+%global golang_arches       %{ix86} x86_64 %{arm}
+%endif
+
 # Fedora GOROOT
 %global goroot          /usr/lib/%{name}
 %undefine _hardened_build
@@ -92,7 +97,7 @@
 
 Name:           golang
 Version:        1.6
-Release:        0.1git%{go_shortcommit}%{?dist}
+Release:        0.2git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -103,6 +108,7 @@ Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_sh
 # to avoid shipping whole tar-ed repo
 # generated using `git log -n 1 --format="format: +%h %cd" HEAD > VERSION` on checked out repo
 Source1: VERSION
+Source2: macros.golang
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -387,6 +393,17 @@ cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d
 cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
 
+#macros.golang
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%if 0%{?rhel} > 6 || 0%{?fedora} > 0
+mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
+cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
+%else
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
+cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
+%endif
+%endif
+
 
 %check
 export GOROOT=$(pwd -P)
@@ -436,6 +453,13 @@ fi
 %exclude %{goroot}/doc/
 %exclude %{goroot}/misc/
 %{goroot}/*
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%if 0%{?rhel} > 6 || 0%{?fedora} > 0
+%{_rpmconfigdir}/macros.d/macros.golang
+%else
+%{_sysconfdir}/rpm/macros.golang
+%endif
+%endif
 
 # ensure directory ownership, so they are cleaned up if empty
 %dir %{gopath}
@@ -471,6 +495,9 @@ fi
 %endif
 
 %changelog
+* Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.2git25a28da
+- EPEL support
+
 * Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.1git25a28da
 - rebase to 25a28da0807f3fa85588fb219f6fa40314bde675
 
