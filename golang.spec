@@ -92,12 +92,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 25a28da0807f3fa85588fb219f6fa40314bde675
+%global go_commit aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.2git%{go_shortcommit}%{?dist}
+Release:        0.3git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -106,7 +106,7 @@ URL:            http://golang.org/
 # (removed non-free license from Public Domain Mark.Twain-Tom.Sawyer.txt and folder renamed to go)
 Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_shortcommit}.tar.gz
 # to avoid shipping whole tar-ed repo
-# generated using `git log -n 1 --format="format: +%h %cd" HEAD > VERSION` on checked out repo
+# generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
 Source1: VERSION
 Source2: macros.golang
 
@@ -495,6 +495,10 @@ fi
 %endif
 
 %changelog
+* Thu Nov 19 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.3gitaae81d9
+- rebase to aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
+- minor spec tweak
+
 * Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.2git25a28da
 - EPEL support
 
