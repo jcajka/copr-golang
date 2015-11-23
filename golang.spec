@@ -44,7 +44,7 @@
 %endif
 
 # Use golang/gcc-go as bootstrap compiler
-%ifarch %{golang_arches}
+%ifarch %{golang_arches} ppc64le
 %global golang_bootstrap 1
 %else
 %global golang_bootstrap 0
@@ -61,7 +61,7 @@
 
 # TODO get more support for shared objects
 # Build golang shared objects for stdlib
-%ifarch x86_64
+%ifarch x86_64 ppc64le aarch64
 %global shared 1
 %else
 %global shared 0
@@ -92,12 +92,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
+%global go_commit 041787280976d0bad15c646fc7c7bbfef76d7ee5
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.3git%{go_shortcommit}%{?dist}
+Release:        0.4git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -495,6 +495,10 @@ fi
 %endif
 
 %changelog
+* Mon Nov 23 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.4git0417872
+- rebase to 041787280976d0bad15c646fc7c7bbfef76d7ee5
+- use golang as bootstrap compiler on ppc64le
+
 * Thu Nov 19 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.3gitaae81d9
 - rebase to aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
 - minor spec tweak
