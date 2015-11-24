@@ -53,7 +53,7 @@
 # make check not to fail due to it
 
 # Controls what ever we fails on failed tests
-%ifarch %{golang_arches}
+%ifarch %{golang_arches} %{power64}
 %global fail_on_tests 1
 %else
 %global fail_on_tests 0
@@ -61,7 +61,7 @@
 
 # TODO get more support for shared objects
 # Build golang shared objects for stdlib
-%ifarch x86_64 ppc64le aarch64
+%ifarch %{ix86} x86_64 ppc64le aarch64
 %global shared 1
 %else
 %global shared 0
@@ -92,12 +92,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 041787280976d0bad15c646fc7c7bbfef76d7ee5
+%global go_commit c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.4git%{go_shortcommit}%{?dist}
+Release:        0.5git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -495,6 +495,10 @@ fi
 %endif
 
 %changelog
+* Tue Nov 24 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.5gitc28a8e4
+- rebase to c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
+- enable shared build on i686
+
 * Mon Nov 23 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.4git0417872
 - rebase to 041787280976d0bad15c646fc7c7bbfef76d7ee5
 - use golang as bootstrap compiler on ppc64le
