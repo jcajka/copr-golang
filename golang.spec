@@ -92,18 +92,18 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
+%global go_commit e5956bca418bb8528509665ae753eada2024b9e3
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.5git%{go_shortcommit}%{?dist}
+Release:        0.6git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
 URL:            http://golang.org/
 # upstream source tarball processed by source.sh in this repo 
-# (removed non-free license from Public Domain Mark.Twain-Tom.Sawyer.txt and folder renamed to go)
+# (folder renamed to go)
 Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_shortcommit}.tar.gz
 # to avoid shipping whole tar-ed repo
 # generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
@@ -495,6 +495,9 @@ fi
 %endif
 
 %changelog
+* Wed Nov 25 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.6gite5956bc
+- rebase to e5956bca418bb8528509665ae753eada2024b9e3
+
 * Tue Nov 24 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.5gitc28a8e4
 - rebase to c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
 - enable shared build on i686
