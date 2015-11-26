@@ -69,7 +69,6 @@
 
 # Fedora GOROOT
 %global goroot          /usr/lib/%{name}
-%undefine _hardened_build
 
 %ifarch x86_64
 %global gohostarch  amd64
@@ -92,12 +91,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit e5956bca418bb8528509665ae753eada2024b9e3
+%global go_commit 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.6git%{go_shortcommit}%{?dist}
+Release:        0.7git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -139,10 +138,6 @@ Patch212:       golang-1.5-bootstrap-binary-path.patch
 # disable TestGdbPython
 # https://github.com/golang/go/issues/11214
 Patch213:       go1.5beta1-disable-TestGdbPython.patch
-
-# disable  TestCloneNEWUSERAndRemapNoRootDisableSetgroups
-# this is not possible in the limitied build chroot
-Patch214:       go1.5beta2-disable-TestCloneNEWUSERAndRemapNoRootDisableSetgroups.patch
 
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
@@ -268,9 +263,6 @@ Summary:        Golang shared object libraries
 
 # disable TestGdbPython
 %patch213 -p1 -b .gdb
-
-# disable TestCloneNEWUSERAndRemapNoRootDisableSetgroups
-%patch214 -p1 -b .groups
 
 cp %{SOURCE1} .
 
@@ -419,10 +411,14 @@ export GO_LDFLAGS="-linkmode internal"
 %if !%{cgo_enabled} || !%{external_linker}
 export CGO_ENABLED=0
 %endif
+
+# make sure to not timeout
+export GO_TEST_TIMEOUT_SCALE=2
+
 %if %{fail_on_tests}
-./run.bash --no-rebuild -v -k
+./run.bash --no-rebuild -v -v -v -k
 %else
-./run.bash --no-rebuild -v -k || :
+./run.bash --no-rebuild -v -v -v -k || :
 %endif
 cd ..
 
@@ -495,6 +491,11 @@ fi
 %endif
 
 %changelog
+* Thu Nov 26 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.7git21efa7b
+- rebase to 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
+- removed go1.5beta2-disable-TestCloneNEWUSERAndRemapNoRootDisableSetgroups.patch
+- make check 'more' verbose
+
 * Wed Nov 25 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.6gite5956bc
 - rebase to e5956bca418bb8528509665ae753eada2024b9e3
 
