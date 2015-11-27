@@ -91,12 +91,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
+%global go_commit 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.7git%{go_shortcommit}%{?dist}
+Release:        0.8git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -491,6 +491,9 @@ fi
 %endif
 
 %changelog
+* Fri Nov 27 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.8git98abf29
+- rebase to 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
+
 * Thu Nov 26 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.7git21efa7b
 - rebase to 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
 - removed go1.5beta2-disable-TestCloneNEWUSERAndRemapNoRootDisableSetgroups.patch
