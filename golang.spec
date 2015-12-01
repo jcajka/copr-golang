@@ -91,12 +91,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
+%global go_commit f000523018e80471f51e29cae117831157d8dfb8
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.8git%{go_shortcommit}%{?dist}
+Release:        0.9git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -491,6 +491,9 @@ fi
 %endif
 
 %changelog
+* Tue Dec 01 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.9gitf000523
+- rebase to f000523018e80471f51e29cae117831157d8dfb8
+
 * Fri Nov 27 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.8git98abf29
 - rebase to 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
 
