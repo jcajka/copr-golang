@@ -43,11 +43,11 @@
 %endif
 
 %global go_api 1.5
-%global go_version 1.5.1
+%global go_version 1.5.2
 
 Name:           golang
-Version:        1.5.1
-Release:        902%{?dist}
+Version:        1.5.2
+Release:        0%{?dist}
 Summary:        The Go Programming Language
 # Stay ahead of Fedora
 
@@ -64,6 +64,7 @@ BuildRequires:  hostname
 %else
 BuildRequires:  net-tools
 %endif
+BuildRequires: glibc-static
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
 
@@ -435,6 +436,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 03 2015 Jakub Čajka <jcajka@fedoraproject.org> - 1.5.2-0
+- rebase to 1.5.2
+
 * Thu Nov 19 2015 Jakub Čajka <jcajka@fedoraproject.org> - 1.5.1-902
 - macros are partialy provided by golang in EPEL and fully by redhat-rpm-macros in Fedora
 
