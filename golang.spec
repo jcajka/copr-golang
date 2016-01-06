@@ -91,12 +91,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 4b0bc7c3a14ac446bc13d22098de8db382205401
+%global go_commit 91f997be723a0f88df0c42051f29c23ef90db0c5
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.20git%{go_shortcommit}%{?dist}
+Release:        0.21git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 
 License:        BSD
@@ -267,6 +267,11 @@ Summary:        Golang shared object libraries
 cp %{SOURCE1} .
 
 %build
+# print out system information
+uname -a
+cat /proc/cpuinfo
+cat /proc/meminfo
+
 # bootstrap compiler GOROOT
 %if !%{golang_bootstrap}
 export GOROOT_BOOTSTRAP=/
@@ -491,6 +496,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 06 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.21git91f997b
+- rebase to 91f997be723a0f88df0c42051f29c23ef90db0c5
+
 * Tue Jan 05 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.20git4b0bc7c
 - rebase to 4b0bc7c3a14ac446bc13d22098de8db382205401
 
