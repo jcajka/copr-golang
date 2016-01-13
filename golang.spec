@@ -39,7 +39,7 @@
 %endif
 
 # Use golang/gcc-go as bootstrap compiler
-%ifarch %{golang_arches} ppc64le
+%ifarch %{golang_arches}
 %global golang_bootstrap 1
 %else
 %global golang_bootstrap 0
