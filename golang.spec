@@ -22,11 +22,6 @@
 %global __spec_install_post /usr/lib/rpm/check-rpaths   /usr/lib/rpm/check-buildroot  \
   /usr/lib/rpm/brp-compress
 
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%global gopath          %{_datadir}/gocode
-%global golang_arches       %{ix86} x86_64 %{arm}
-%endif
-
 # Golang build options.
 
 # Buid golang using external/internal(close to cgo disabled) linking.
@@ -61,7 +56,7 @@
 
 # TODO get more support for shared objects
 # Build golang shared objects for stdlib
-%ifarch %{ix86} x86_64 ppc64le aarch64
+%ifarch %{ix86} x86_64 ppc64le
 %global shared 1
 %else
 %global shared 0
@@ -91,23 +86,15 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit 771da53958618108c8ea56a69412eaeaae79e0ae
-%global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.24git%{go_shortcommit}%{?dist}
+Release:        0.beta1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
 URL:            http://golang.org/
-# upstream source tarball processed by source.sh in this repo 
-# (folder renamed to go)
-Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_shortcommit}.tar.gz
-# to avoid shipping whole tar-ed repo
-# generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
-Source1: VERSION
-Source2: macros.golang
+Source0:        https://storage.googleapis.com/golang/go1.6beta1.src.tar.gz
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -126,6 +113,7 @@ BuildRequires:  pcre-devel, glibc-static
 Provides:       go = %{version}-%{release}
 Requires:       %{name}-bin
 Requires:       %{name}-src = %{version}-%{release}
+Requires:       go-srpm-macros
 
 Patch0:         golang-1.2-verbose-build.patch
 
@@ -264,7 +252,6 @@ Summary:        Golang shared object libraries
 # disable TestGdbPython
 %patch213 -p1 -b .gdb
 
-cp %{SOURCE1} .
 
 %build
 # print out system information
@@ -390,17 +377,6 @@ cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d
 cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
 
-#macros.golang
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%if 0%{?rhel} > 6 || 0%{?fedora} > 0
-mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
-cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
-%else
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
-cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
-%endif
-%endif
-
 
 %check
 export GOROOT=$(pwd -P)
@@ -454,13 +430,6 @@ fi
 %exclude %{goroot}/doc/
 %exclude %{goroot}/misc/
 %{goroot}/*
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%if 0%{?rhel} > 6 || 0%{?fedora} > 0
-%{_rpmconfigdir}/macros.d/macros.golang
-%else
-%{_sysconfdir}/rpm/macros.golang
-%endif
-%endif
 
 # ensure directory ownership, so they are cleaned up if empty
 %dir %{gopath}
@@ -496,86 +465,8 @@ fi
 %endif
 
 %changelog
-* Wed Jan 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.24git771da53
-- rebase to 771da53958618108c8ea56a69412eaeaae79e0ae
-
-* Mon Jan 11 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.23git109d54a
-- rebase to 109d54a32d15b805769d4c05e78367f126a8d7f0
-
-* Thu Jan 07 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.22git305b4ba
-- rebase to 305b4baf41ecbaa3469428b7debb389bd1527804
-- mention Public Domain in License tag
-
-* Wed Jan 06 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.21git91f997b
-- rebase to 91f997be723a0f88df0c42051f29c23ef90db0c5
-
-* Tue Jan 05 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.20git4b0bc7c
-- rebase to 4b0bc7c3a14ac446bc13d22098de8db382205401
-
-* Mon Jan 04 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.19gite2093cd
-- rebase to e2093cdeef8dcf0303ce3d8e79247c71ed53507d
-
-* Tue Dec 15 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.18git3540376
-- rebase to 3540376b7067911fe1e02cb25e10b34ff789c630
-
-* Mon Dec 14 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.17git24a7955
-- rebase to 24a7955c74e5617492c256bfad03904d6f169b10
-
-* Fri Dec 11 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.16git8545ea9
-- rebase to 8545ea9cee087fd0fbac41bba7616d2fc4f2bc19
-
-* Thu Dec 10 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.15gite05b48e
-- rebase to e05b48e22c3cc4ad334fdd9542bb9a69370cf79a
-
-* Wed Dec 09 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.14git9a89ac3
-- rebase to 9a89ac35fe5d5dfaed307544b5cc290bd821dea1
-
-* Tue Dec 08 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.13gitaa487e6
-- rebase to aa487e66f869785837275ee20441a53888a51bb2
-
-* Mon Dec 07 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.12git84a875c
-- rebase to 84a875caa6de1b404dad596b1b6949e436168c76
-
-* Fri Dec 04 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.11git8854bdb
-- rebase to 8854bdbd76d66a39b35980cee6643b4d4bd48fd4
-
-* Wed Dec 02 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.10git0ea1c1f
-- rebase to 0ea1c1f6715c6fe33c38b6292ce2bdccaa86f0e2
-
-* Tue Dec 01 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.9gitf000523
-- rebase to f000523018e80471f51e29cae117831157d8dfb8
-
-* Fri Nov 27 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.8git98abf29
-- rebase to 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
-
-* Thu Nov 26 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.7git21efa7b
-- rebase to 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
-- removed go1.5beta2-disable-TestCloneNEWUSERAndRemapNoRootDisableSetgroups.patch
-- make check 'more' verbose
-
-* Wed Nov 25 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.6gite5956bc
-- rebase to e5956bca418bb8528509665ae753eada2024b9e3
-
-* Tue Nov 24 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.5gitc28a8e4
-- rebase to c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
-- enable shared build on i686
-
-* Mon Nov 23 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.4git0417872
-- rebase to 041787280976d0bad15c646fc7c7bbfef76d7ee5
-- use golang as bootstrap compiler on ppc64le
-
-* Thu Nov 19 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.3gitaae81d9
-- rebase to aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
-- minor spec tweak
-
-* Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.2git25a28da
-- EPEL support
-
-* Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.1git25a28da
-- rebase to 25a28da0807f3fa85588fb219f6fa40314bde675
-
-* Fri Nov 13 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.git3073797
-- rebase to upstream master branch commit 3073797c37e168f3671880c683a228f9f8f942e3
+* Wed Jan 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.beta1
+- rebase to golang1.6 beta1
 
 * Tue Nov 03 2015 Jakub Čajka <jcajka@redhat.com> - 1.5.1-2
 - spec file clean up
