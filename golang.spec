@@ -89,12 +89,12 @@
 
 Name:           golang
 Version:        1.6
-Release:        0.beta1%{?dist}
+Release:        0.beta2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
 URL:            http://golang.org/
-Source0:        https://storage.googleapis.com/golang/go1.6beta1.src.tar.gz
+Source0:        https://storage.googleapis.com/golang/go1.6beta2.src.tar.gz
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -251,6 +251,8 @@ Summary:        Golang shared object libraries
 
 # disable TestGdbPython
 %patch213 -p1 -b .gdb
+
+%patch215 -p1
 
 
 %build
@@ -465,6 +467,10 @@ fi
 %endif
 
 %changelog
+* Thu Jan 14 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.beta2
+- rebase to golang1.6 beta2
+- apply timezone patch, avoid using bundled data
+
 * Wed Jan 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.beta1
 - rebase to golang1.6 beta1
 
