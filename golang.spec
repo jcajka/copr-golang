@@ -91,12 +91,12 @@
 
 %global go_api 1.6
 %global go_version 1.6
-%global go_commit af15beeab5ff9cde411c3db086ca9a24ace4c898 
+%global go_commit f309bf3eeff8343e557a9798e42ac72b37da3f0a
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.6
-Release:        0.31git%{go_shortcommit}%{?dist}
+Release:        0.32git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -503,6 +503,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 02 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.32gitf309bf3
+- rebase to f309bf3eeff8343e557a9798e42ac72b37da3f0a
+
 * Mon Feb 01 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.31gitaf15bee
 - rebase to af15beeab5ff9cde411c3db086ca9a24ace4c898
 
