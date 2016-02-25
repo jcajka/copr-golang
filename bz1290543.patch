@@ -1,0 +1,55 @@
+From a0ea93dea5f5741addc8c96b7ed037d0e359e33f Mon Sep 17 00:00:00 2001
+From: Adam Langley <agl@golang.org>
+Date: Fri, 27 Nov 2015 13:50:36 -0800
+Subject: [PATCH] crypto/x509: permit serial numbers to be negative.
+
+Some software that produces certificates doesn't encode integers
+correctly and, about half the time, ends up producing certificates with
+serial numbers that are actually negative.
+
+This buggy software, sadly, appears to be common enough that we should
+let these errors pass. This change allows a Certificate.SerialNumber to
+be negative.
+
+Fixes #8265.
+
+Change-Id: Ief35dae23988fb6d5e2873e3c521366fb03c6af4
+Reviewed-on: https://go-review.googlesource.com/17247
+Reviewed-by: Brad Fitzpatrick <bradfitz@golang.org>
+---
+ src/crypto/x509/x509.go      | 4 ----
+ src/crypto/x509/x509_test.go | 6 +++++-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/crypto/x509/x509.go b/src/crypto/x509/x509.go
+index bbc63241..126432d 100644
+--- a/src/crypto/x509/x509.go
++++ b/src/crypto/x509/x509.go
+@@ -909,10 +909,6 @@ func parseCertificate(in *certificate) (*Certificate, error) {
+ 		return nil, err
+ 	}
+ 
+-	if in.TBSCertificate.SerialNumber.Sign() < 0 {
+-		return nil, errors.New("x509: negative serial number")
+-	}
+-
+ 	out.Version = in.TBSCertificate.Version + 1
+ 	out.SerialNumber = in.TBSCertificate.SerialNumber
+ 
+diff --git a/src/crypto/x509/x509_test.go b/src/crypto/x509/x509_test.go
+index 61b1773..2c01ec7 100644
+--- a/src/crypto/x509/x509_test.go
++++ b/src/crypto/x509/x509_test.go
+@@ -343,7 +343,11 @@ func TestCreateSelfSignedCertificate(t *testing.T) {
+ 	for _, test := range tests {
+ 		commonName := "test.example.com"
+ 		template := Certificate{
+-			SerialNumber: big.NewInt(1),
++			// SerialNumber is negative to ensure that negative
++			// values are parsed. This is due to the prevalence of
++			// buggy code that produces certificates with negative
++			// serial numbers.
++			SerialNumber: big.NewInt(-1),
+ 			Subject: pkix.Name{
+ 				CommonName:   commonName,
+ 				Organization: []string{"Σ Acme Co"},
