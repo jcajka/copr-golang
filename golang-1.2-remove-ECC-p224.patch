@@ -1,9 +1,3 @@
-commit f8eb1e50541c8a9e55545d7470dbeab96073a632
-Author: Vincent Batts <vbatts@hashbangbash.com>
-Date:   Thu Jul 16 11:38:45 2015 -0400
-
-    p224
-
 diff --git a/api/go1.txt b/api/go1.txt
 index 5e3dea5..1a1ee83 100644
 --- a/api/go1.txt
@@ -17,7 +11,7 @@ index 5e3dea5..1a1ee83 100644
  pkg crypto/elliptic, func P384() Curve
  pkg crypto/elliptic, func P521() Curve
 diff --git a/src/crypto/ecdsa/ecdsa_test.go b/src/crypto/ecdsa/ecdsa_test.go
-index 169944d..c653464 100644
+index 5e588b9..78fbb42 100644
 --- a/src/crypto/ecdsa/ecdsa_test.go
 +++ b/src/crypto/ecdsa/ecdsa_test.go
 @@ -33,11 +33,10 @@ func testKeyGeneration(t *testing.T, c elliptic.Curve, tag string) {
@@ -33,7 +27,7 @@ index 169944d..c653464 100644
  	testKeyGeneration(t, elliptic.P384(), "p384")
  	testKeyGeneration(t, elliptic.P521(), "p521")
  }
-@@ -63,11 +62,10 @@ func testSignAndVerify(t *testing.T, c elliptic.Curve, tag string) {
+@@ -98,11 +97,10 @@ func testSignAndVerify(t *testing.T, c elliptic.Curve, tag string) {
  }
  
  func TestSignAndVerify(t *testing.T) {
@@ -46,7 +40,7 @@ index 169944d..c653464 100644
  	testSignAndVerify(t, elliptic.P384(), "p384")
  	testSignAndVerify(t, elliptic.P521(), "p521")
  }
-@@ -100,11 +98,10 @@ func testNonceSafety(t *testing.T, c elliptic.Curve, tag string) {
+@@ -135,11 +133,10 @@ func testNonceSafety(t *testing.T, c elliptic.Curve, tag string) {
  }
  
  func TestNonceSafety(t *testing.T) {
@@ -59,7 +53,7 @@ index 169944d..c653464 100644
  	testNonceSafety(t, elliptic.P384(), "p384")
  	testNonceSafety(t, elliptic.P521(), "p521")
  }
-@@ -135,11 +132,10 @@ func testINDCCA(t *testing.T, c elliptic.Curve, tag string) {
+@@ -170,11 +167,10 @@ func testINDCCA(t *testing.T, c elliptic.Curve, tag string) {
  }
  
  func TestINDCCA(t *testing.T) {
@@ -72,7 +66,7 @@ index 169944d..c653464 100644
  	testINDCCA(t, elliptic.P384(), "p384")
  	testINDCCA(t, elliptic.P521(), "p521")
  }
-@@ -201,8 +197,6 @@ func TestVectors(t *testing.T) {
+@@ -236,8 +232,6 @@ func TestVectors(t *testing.T) {
  			parts := strings.SplitN(line, ",", 2)
  
  			switch parts[0] {
@@ -92,10 +86,10 @@ index 0000000..4544722
 +const bottom28Bits = 0xfffffff
 +const two31m3 = 1<<31 - 1<<3
 diff --git a/src/crypto/elliptic/elliptic.go b/src/crypto/elliptic/elliptic.go
-index f3b84e1..ca0b7cf 100644
+index c02df45..f713ad7 100644
 --- a/src/crypto/elliptic/elliptic.go
 +++ b/src/crypto/elliptic/elliptic.go
-@@ -331,7 +331,6 @@ var p384 *CurveParams
+@@ -338,7 +338,6 @@ var p384 *CurveParams
  var p521 *CurveParams
  
  func initAll() {
@@ -104,7 +98,7 @@ index f3b84e1..ca0b7cf 100644
  	initP384()
  	initP521()
 diff --git a/src/crypto/elliptic/elliptic_test.go b/src/crypto/elliptic/elliptic_test.go
-index 7e27913..e0034fc 100644
+index 7f3f1a2..833668e 100644
 --- a/src/crypto/elliptic/elliptic_test.go
 +++ b/src/crypto/elliptic/elliptic_test.go
 @@ -6,27 +6,25 @@ package elliptic
@@ -240,7 +234,7 @@ index 7e27913..e0034fc 100644
  	k, _ := new(big.Int).SetString(e.k, 10)
  	b.StartTimer()
  	for i := 0; i < b.N; i++ {
-@@ -442,14 +393,14 @@ func BenchmarkBaseMultP256(b *testing.B) {
+@@ -454,14 +405,14 @@ func BenchmarkScalarMultP256(b *testing.B) {
  }
  
  func TestMarshal(t *testing.T) {
@@ -259,7 +253,7 @@ index 7e27913..e0034fc 100644
  	if xx == nil {
  		t.Error("failed to unmarshal")
  		return
-@@ -459,13 +410,3 @@ func TestMarshal(t *testing.T) {
+@@ -471,13 +422,3 @@ func TestMarshal(t *testing.T) {
  		return
  	}
  }
@@ -275,11 +269,11 @@ index 7e27913..e0034fc 100644
 -}
 diff --git a/src/crypto/elliptic/p224.go b/src/crypto/elliptic/p224.go
 deleted file mode 100644
-index 2d3fac7..0000000
+index de266ca..0000000
 --- a/src/crypto/elliptic/p224.go
 +++ /dev/null
 @@ -1,765 +0,0 @@
--// Copyright 2012 The Go Authors.  All rights reserved.
+-// Copyright 2012 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
 -
@@ -1046,11 +1040,11 @@ index 2d3fac7..0000000
 -}
 diff --git a/src/crypto/elliptic/p224_test.go b/src/crypto/elliptic/p224_test.go
 deleted file mode 100644
-index 4b26d16..0000000
+index 8b4fa04..0000000
 --- a/src/crypto/elliptic/p224_test.go
 +++ /dev/null
 @@ -1,47 +0,0 @@
--// Copyright 2012 The Go Authors.  All rights reserved.
+-// Copyright 2012 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
 -
@@ -1120,10 +1114,10 @@ index 83f9916..dea8589 100644
  		priv, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
  	case "P384":
 diff --git a/src/crypto/x509/x509.go b/src/crypto/x509/x509.go
-index be6c013..428053a 100644
+index 341a460..8ead979 100644
 --- a/src/crypto/x509/x509.go
 +++ b/src/crypto/x509/x509.go
-@@ -308,9 +308,6 @@ func getPublicKeyAlgorithmFromOID(oid asn1.ObjectIdentifier) PublicKeyAlgorithm
+@@ -340,9 +340,6 @@ func getPublicKeyAlgorithmFromOID(oid asn1.ObjectIdentifier) PublicKeyAlgorithm
  
  // RFC 5480, 2.1.1.1. Named Curve
  //
@@ -1133,7 +1127,7 @@ index be6c013..428053a 100644
  // secp256r1 OBJECT IDENTIFIER ::= {
  //   iso(1) member-body(2) us(840) ansi-X9-62(10045) curves(3)
  //   prime(1) 7 }
-@@ -323,7 +320,6 @@ func getPublicKeyAlgorithmFromOID(oid asn1.ObjectIdentifier) PublicKeyAlgorithm
+@@ -355,7 +352,6 @@ func getPublicKeyAlgorithmFromOID(oid asn1.ObjectIdentifier) PublicKeyAlgorithm
  //
  // NB: secp256r1 is equivalent to prime256v1
  var (
@@ -1141,7 +1135,7 @@ index be6c013..428053a 100644
  	oidNamedCurveP256 = asn1.ObjectIdentifier{1, 2, 840, 10045, 3, 1, 7}
  	oidNamedCurveP384 = asn1.ObjectIdentifier{1, 3, 132, 0, 34}
  	oidNamedCurveP521 = asn1.ObjectIdentifier{1, 3, 132, 0, 35}
-@@ -331,8 +327,6 @@ var (
+@@ -363,8 +359,6 @@ var (
  
  func namedCurveFromOID(oid asn1.ObjectIdentifier) elliptic.Curve {
  	switch {
@@ -1150,7 +1144,7 @@ index be6c013..428053a 100644
  	case oid.Equal(oidNamedCurveP256):
  		return elliptic.P256()
  	case oid.Equal(oidNamedCurveP384):
-@@ -345,8 +339,6 @@ func namedCurveFromOID(oid asn1.ObjectIdentifier) elliptic.Curve {
+@@ -377,8 +371,6 @@ func namedCurveFromOID(oid asn1.ObjectIdentifier) elliptic.Curve {
  
  func oidFromNamedCurve(curve elliptic.Curve) (asn1.ObjectIdentifier, bool) {
  	switch curve {
@@ -1159,7 +1153,7 @@ index be6c013..428053a 100644
  	case elliptic.P256():
  		return oidNamedCurveP256, true
  	case elliptic.P384():
-@@ -1466,7 +1458,7 @@ func signingParamsForPublicKey(pub interface{}, requestedSigAlgo SignatureAlgori
+@@ -1508,7 +1500,7 @@ func signingParamsForPublicKey(pub interface{}, requestedSigAlgo SignatureAlgori
  		pubType = ECDSA
  
  		switch pub.Curve {
