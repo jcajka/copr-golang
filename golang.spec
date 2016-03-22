@@ -30,14 +30,14 @@
 # Golang build options.
 
 # Buid golang using external/internal(close to cgo disabled) linking.
-%ifarch %{golang_arches} %{power64}
+%ifarch %{golang_arches} %{power64} s390x
 %global external_linker 1
 %else
 %global external_linker 0
 %endif
 
 # Build golang with cgo enabled/disabled(later equals more or less to internal linking).
-%ifarch %{golang_arches} %{power64}
+%ifarch %{golang_arches} %{power64} s390x
 %global cgo_enabled 1
 %else
 %global cgo_enabled 0
@@ -88,15 +88,18 @@
 %ifarch ppc64le
 %global gohostarch  ppc64le
 %endif
+%ifarch s390x
+%global gohostarch  s390x
+%endif
 
 %global go_api 1.7
 %global go_version 1.7
-%global go_commit cd187e9102bd6c55bb611a0b0f35fc4a7e0fbc51
+%global go_commit 77f4b773e72b0840a1ce0b314cba44dff9fbaf31
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.7
-Release:        0.2git%{go_shortcommit}%{?dist}
+Release:        0.3git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -161,7 +164,7 @@ Obsoletes:      %{name}-vim < 1.4
 Obsoletes:      emacs-%{name} < 1.4
 
 # These are the only RHEL/Fedora architectures that we compile this package for
-ExclusiveArch:  %{golang_arches} %{power64}
+ExclusiveArch:  %{golang_arches} %{power64} s390x
 
 Source100:      golang-gdbinit
 Source101:      golang-prelink.conf
@@ -503,6 +506,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 22 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.3git77f4b77
+- prepare for s390x
+- rebase to 77f4b773e72b0840a1ce0b314cba44dff9fbaf31
+
 * Mon Mar 21 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.2gitcd187e9
 - rebase to cd187e9102bd6c55bb611a0b0f35fc4a7e0fbc51
 
