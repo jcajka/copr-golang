@@ -1,13 +1,12 @@
-diff --git a/src/runtime/runtime-gdb_test.go b/src/runtime/runtime-gdb_test.go
-index f4014b2..2c09441 100644
---- a/src/runtime/runtime-gdb_test.go
-+++ b/src/runtime/runtime-gdb_test.go
-@@ -38,7 +38,7 @@ func main() {
+diff -up go/src/runtime/runtime-gdb_test.go.gdb go/src/runtime/runtime-gdb_test.go
+--- go/src/runtime/runtime-gdb_test.go.gdb	2016-04-28 10:31:13.005689813 +0200
++++ go/src/runtime/runtime-gdb_test.go	2016-04-28 10:32:12.202935125 +0200
+@@ -72,7 +72,7 @@ func main() {
  }
  `
  
 -func TestGdbPython(t *testing.T) {
 +func testGdbPython(t *testing.T) {
- 	if runtime.GOOS == "darwin" {
- 		t.Skip("gdb does not work on darwin")
- 	}
+ 	checkGdbEnvironment(t)
+ 	checkGdbVersion(t)
+ 	checkGdbPython(t)
