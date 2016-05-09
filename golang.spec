@@ -82,10 +82,10 @@
 %endif
 
 %global go_api 1.6
-%global go_version 1.6
+%global go_version 1.6.2
 
 Name:           golang
-Version:        1.6
+Version:        1.6.2
 Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -117,10 +117,6 @@ Patch0:         golang-1.2-verbose-build.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1038683
 Patch1:         golang-1.2-remove-ECC-p224.patch
 
-# Resolves RHBZ 1304591
-# https://github.com/golang/go/issues/14384
-Patch100:       mmap-cgo-stackalign.patch
-
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
 
@@ -146,7 +142,6 @@ Obsoletes:      emacs-%{name} < 1.4
 ExclusiveArch:  %{golang_arches}
 
 Source100:      golang-gdbinit
-Source101:      golang-prelink.conf
 
 %description
 %{summary}.
@@ -247,8 +242,6 @@ Summary:        Golang shared object libraries
 # remove the P224 curve
 %patch1 -p1
 
-%patch100 -p1
-
 # use the arch dependent path in the bootstrap
 %patch212 -p1
 
@@ -256,7 +249,6 @@ Summary:        Golang shared object libraries
 %patch213 -p1
 
 %patch215 -p1
-
 
 %build
 # print out system information
@@ -378,11 +370,6 @@ ln -sf /etc/alternatives/gofmt $RPM_BUILD_ROOT%{_bindir}/gofmt
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d
 cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 
-# prelink blacklist
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d
-cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
-
-
 %check
 export GOROOT=$(pwd -P)
 export PATH="$GOROOT"/bin:"$PATH"
@@ -450,9 +437,6 @@ fi
 # gdbinit (for gdb debugging)
 %{_sysconfdir}/gdbinit.d
 
-# prelink blacklist
-%{_sysconfdir}/prelink.conf.d
-
 %files -f go-src.list src
 
 %files -f go-docs.list docs
@@ -470,6 +454,9 @@ fi
 %endif
 
 %changelog
+* Mon May 09 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.2-1
+- Bump to 1.6.2
+
 * Tue Mar 01 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-1
 - Bump for copr-golang1.6
 
@@ -709,7 +696,7 @@ fi
 - include sub-packages for compiler toolchains, for all golang supported architectures
 
 * Wed Mar 26 2014 Vincent Batts <vbatts@fedoraproject.org> 1.2.1-2
-- provide a system rpm macros. Starting with %gopath
+- provide a system rpm macros. Starting with gopath
 
 * Tue Mar 04 2014 Adam Miller <maxamillion@fedoraproject.org> 1.2.1-1
 - Update to latest upstream
