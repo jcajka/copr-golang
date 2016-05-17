@@ -22,6 +22,11 @@
 %global __spec_install_post /usr/lib/rpm/check-rpaths   /usr/lib/rpm/check-buildroot  \
   /usr/lib/rpm/brp-compress
 
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%global gopath          %{_datadir}/gocode
+%global golang_arches       %{ix86} x86_64 %{arm}
+%endif
+
 # Golang build options.
 
 # Build golang using external/internal(close to cgo disabled) linking.
@@ -86,12 +91,13 @@
 
 Name:           golang
 Version:        1.6.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
 URL:            http://golang.org/
 Source0:        https://storage.googleapis.com/golang/go%{go_version}.src.tar.gz
+Source1:        macros.golang
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -110,7 +116,11 @@ BuildRequires:  pcre-devel, glibc-static
 Provides:       go = %{version}-%{release}
 Requires:       %{name}-bin = %{version}-%{release}
 Requires:       %{name}-src = %{version}-%{release}
+%if 0%{?fedora} > 0
 Requires:       go-srpm-macros
+%else
+Provides:       go-srpm-macros
+%endif
 
 Patch0:         golang-1.2-verbose-build.patch
 
@@ -370,6 +380,18 @@ ln -sf /etc/alternatives/gofmt $RPM_BUILD_ROOT%{_bindir}/gofmt
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d
 cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 
+#macros.golang
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%if 0%{?rhel} > 6 || 0%{?fedora} > 0
+mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
+cp -av %{SOURCE1} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
+%else
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
+cp -av %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
+%endif
+%endif
+
+
 %check
 export GOROOT=$(pwd -P)
 export PATH="$GOROOT"/bin:"$PATH"
@@ -437,6 +459,14 @@ fi
 # gdbinit (for gdb debugging)
 %{_sysconfdir}/gdbinit.d
 
+%if 0%{?rhel} > 5 || 0%{?fedora} < 21
+%if 0%{?rhel} > 6 || 0%{?fedora} > 0
+%{_rpmconfigdir}/macros.d/macros.golang
+%else
+%{_sysconfdir}/rpm/macros.golang
+%endif
+%endif
+
 %files -f go-src.list src
 
 %files -f go-docs.list docs
@@ -454,6 +484,9 @@ fi
 %endif
 
 %changelog
+* Tue May 17 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.2-2
+- fix EPEL-7 build
+
 * Mon May 09 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.2-1
 - Bump to 1.6.2
 
