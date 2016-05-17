@@ -93,7 +93,7 @@
 
 Name:           golang
 Version:        1.5.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 Epoch:          1
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -103,6 +103,7 @@ URL:            http://golang.org/
 Source0:        https://storage.googleapis.com/golang/go%{go_version}.src.tar.gz
 # original removed by source.sh, replace by version from golang master branch with license scrubbed
 Source1:        Mark.Twain-Tom.Sawyer.txt.bz2
+Source2:        macros.golang
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -123,6 +124,8 @@ Requires:       %{name}-bin
 Requires:       %{name}-src = %{epoch}:%{version}-%{release}
 %if 0%{?fedora} > 0
 Requires:       go-srpm-macros
+%else
+Provides:       go-srpm-macros
 %endif
 
 Patch0:         golang-1.2-verbose-build.patch
@@ -412,10 +415,10 @@ cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
 %if 0%{?rhel} > 5 || 0%{?fedora} < 21
 %if 0%{?rhel} > 6 || 0%{?fedora} > 0
 mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
-cp -av %{SOURCE1} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
+cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
 %else
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
-cp -av %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
+cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
 %endif
 %endif
 
@@ -510,6 +513,9 @@ fi
 %endif
 
 %changelog
+* Tue May 17 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.3-2
+- fix EPEL packaging
+
 * Thu Feb 25 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.3-1
 - rebase to 1.5.3 in Copr Repo(epoch bump)
 - resolves bz1293451, CVE-2015-8618
