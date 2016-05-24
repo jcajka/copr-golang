@@ -11,7 +11,7 @@ index 5e3dea5..1a1ee83 100644
  pkg crypto/elliptic, func P384() Curve
  pkg crypto/elliptic, func P521() Curve
 diff --git a/src/crypto/ecdsa/ecdsa_test.go b/src/crypto/ecdsa/ecdsa_test.go
-index 5e588b9..78fbb42 100644
+index fc25fd7..356e617 100644
 --- a/src/crypto/ecdsa/ecdsa_test.go
 +++ b/src/crypto/ecdsa/ecdsa_test.go
 @@ -33,11 +33,10 @@ func testKeyGeneration(t *testing.T, c elliptic.Curve, tag string) {
@@ -75,6 +75,14 @@ index 5e588b9..78fbb42 100644
  			case "P-256":
  				pub.Curve = elliptic.P256()
  			case "P-384":
+@@ -314,7 +308,6 @@ func testNegativeInputs(t *testing.T, curve elliptic.Curve, tag string) {
+ }
+ 
+ func TestNegativeInputs(t *testing.T) {
+-	testNegativeInputs(t, elliptic.P224(), "p224")
+ 	testNegativeInputs(t, elliptic.P256(), "p256")
+ 	testNegativeInputs(t, elliptic.P384(), "p384")
+ 	testNegativeInputs(t, elliptic.P521(), "p521")
 diff --git a/src/crypto/elliptic/bottombits.go b/src/crypto/elliptic/bottombits.go
 new file mode 100644
 index 0000000..4544722
@@ -1114,7 +1122,7 @@ index 83f9916..dea8589 100644
  		priv, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
  	case "P384":
 diff --git a/src/crypto/x509/x509.go b/src/crypto/x509/x509.go
-index 341a460..8ead979 100644
+index 9e6d67d..580831e 100644
 --- a/src/crypto/x509/x509.go
 +++ b/src/crypto/x509/x509.go
 @@ -340,9 +340,6 @@ func getPublicKeyAlgorithmFromOID(oid asn1.ObjectIdentifier) PublicKeyAlgorithm
