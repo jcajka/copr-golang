@@ -27,6 +27,8 @@
 %global golang_arches       %{ix86} x86_64 %{arm}
 %endif
 
+%global golibdir %{_libdir}/golang
+
 # Golang build options.
 
 # Buid golang using external/internal(close to cgo disabled) linking.
@@ -94,12 +96,12 @@
 
 %global go_api 1.7
 %global go_version 1.7
-%global go_commit 7a9f6c2b56bd87ff7f9296344c9e63cc46194428
+%global go_commit 72eb46c5a086051e3677579a0810922724eb6a6d
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.7
-Release:        0.27git%{go_shortcommit}%{?dist}
+Release:        0.28git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -357,6 +359,18 @@ pushd $RPM_BUILD_ROOT%{goroot}
 	find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
 
 %if %{shared}
+    mkdir %{buildroot}/%{_libdir}/
+    mkdir %{buildroot}/%{golibdir}/
+    for file in $(find .  -iname "*.so" ); do
+        chmod 755 $file
+        mv  $file %{buildroot}/%{golibdir}
+        pushd $(dirname $file)
+        ln -fs %{golibdir}/$(basename $file) $(basename $file)
+        popd
+        echo "%%{goroot}/$file" >> $shared_list
+        echo "%%{golibdir}/$(basename $file)" >> $shared_list
+    done
+    
 	find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
 	find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
 %endif
@@ -498,6 +512,10 @@ fi
 %endif
 
 %changelog
+* Wed May 25 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.28git72eb46c
+- new shared lib packaging
+- rebase to 72eb46c5a086051e3677579a0810922724eb6a6d
+
 * Tue May 24 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.27git7a9f6c2
 - rebase to 7a9f6c2b56bd87ff7f9296344c9e63cc46194428
 
