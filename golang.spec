@@ -89,11 +89,11 @@
 %endif
 
 %global go_api 1.5
-%global go_version 1.5.3
+%global go_version 1.5.4
 
 Name:           golang
-Version:        1.5.3
-Release:        2%{?dist}
+Version:        1.5.4
+Release:        1%{?dist}
 Epoch:          1
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -169,7 +169,6 @@ Obsoletes:      emacs-%{name} < 1.4
 ExclusiveArch:  %{golang_arches}
 
 Source100:      golang-gdbinit
-Source101:      golang-prelink.conf
 
 %description
 %{summary}.
@@ -407,10 +406,6 @@ ln -sf /etc/alternatives/gofmt $RPM_BUILD_ROOT%{_bindir}/gofmt
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d
 cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 
-# prelink blacklist
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d
-cp -av %{SOURCE101} $RPM_BUILD_ROOT%{_sysconfdir}/prelink.conf.d/golang.conf
-
 #macros.golang
 %if 0%{?rhel} > 5 || 0%{?fedora} < 21
 %if 0%{?rhel} > 6 || 0%{?fedora} > 0
@@ -493,9 +488,6 @@ fi
 # gdbinit (for gdb debugging)
 %{_sysconfdir}/gdbinit.d
 
-# prelink blacklist
-%{_sysconfdir}/prelink.conf.d
-
 %files -f go-src.list src
 
 %files -f go-docs.list docs
@@ -513,6 +505,11 @@ fi
 %endif
 
 %changelog
+* Mon May 30 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.4-1
+- rebase to 1.5.4
+- resolves bz1324344 - CVE-2016-3959
+- resolves bz1324951 - prelink is gone, /etc/prelink.conf.d/* is no longer used
+
 * Tue May 17 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.3-2
 - fix EPEL packaging
 
