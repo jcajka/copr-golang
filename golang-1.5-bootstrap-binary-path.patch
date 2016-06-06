@@ -1,24 +1,23 @@
 diff -up go/src/cmd/dist/buildtool.go.bootstrap go/src/cmd/dist/buildtool.go
---- go/src/cmd/dist/buildtool.go.bootstrap	2016-03-15 09:45:08.926358402 +0100
-+++ go/src/cmd/dist/buildtool.go	2016-03-15 10:02:54.134783743 +0100
-@@ -107,14 +107,23 @@ func bootstrapBuildTools() {
+--- go/src/cmd/dist/buildtool.go.bootstrap	2016-06-06 14:26:37.638374670 +0200
++++ go/src/cmd/dist/buildtool.go	2016-06-06 14:30:33.873262307 +0200
+@@ -111,15 +111,23 @@ func bootstrapBuildTools() {
+ 	defer os.Setenv("GOBIN", os.Getenv("GOBIN"))
  	os.Setenv("GOBIN", "")
  
- 	os.Setenv("GOOS", "")
--	os.Setenv("GOHOSTOS", "")
- 	os.Setenv("GOARCH", "")
-+
 +	hostos := os.Getenv("GOHOSTOS")
 +	hostarch := os.Getenv("GOHOSTARCH")
-+	os.Setenv("GOHOSTOS", "")
- 	os.Setenv("GOHOSTARCH", "")
-+	os.Setenv("GOHOSTARCH", "")
 +
+ 	os.Setenv("GOOS", "")
+ 	os.Setenv("GOHOSTOS", "")
+ 	os.Setenv("GOARCH", "")
+ 	os.Setenv("GOHOSTARCH", "")
+ 
 +	bingopath := pathf("%s/bin/%s_%s/go", goroot_bootstrap, hostos, hostarch)
 +	if _, err := os.Stat(bingopath); os.IsNotExist(err) {
 +		bingopath = pathf("%s/bin/go", goroot_bootstrap)
 +	}
- 
++
  	// Run Go 1.4 to build binaries. Use -gcflags=-l to disable inlining to
  	// workaround bugs in Go 1.4's compiler. See discussion thread:
  	// https://groups.google.com/d/msg/golang-dev/Ss7mCKsvk8w/Gsq7VYI0AwAJ
@@ -28,9 +27,9 @@ diff -up go/src/cmd/dist/buildtool.go.bootstrap go/src/cmd/dist/buildtool.go
  	// Copy binaries into tool binary directory.
  	for _, name := range bootstrapDirs {
 diff -up go/src/make.bash.bootstrap go/src/make.bash
---- go/src/make.bash.bootstrap	2016-03-15 09:45:08.914358334 +0100
-+++ go/src/make.bash	2016-03-15 09:45:08.926358402 +0100
-@@ -115,8 +115,15 @@ echo '##### Building Go bootstrap tool.'
+--- go/src/make.bash.bootstrap	2016-06-06 14:26:37.628374633 +0200
++++ go/src/make.bash	2016-06-06 14:26:37.638374670 +0200
+@@ -118,8 +118,15 @@ echo '##### Building Go bootstrap tool.'
  echo cmd/dist
  export GOROOT="$(cd .. && pwd)"
  GOROOT_BOOTSTRAP=${GOROOT_BOOTSTRAP:-$HOME/go1.4}
@@ -48,3 +47,12 @@ diff -up go/src/make.bash.bootstrap go/src/make.bash
  	echo "Set \$GOROOT_BOOTSTRAP to a working Go tree >= Go 1.4." >&2
  	exit 1
  fi
+@@ -128,8 +135,6 @@ if [ "$GOROOT_BOOTSTRAP" == "$GOROOT" ];
+ 	echo "Set \$GOROOT_BOOTSTRAP to a working Go tree >= Go 1.4." >&2
+ 	exit 1
+ fi
+-rm -f cmd/dist/dist
+-GOROOT="$GOROOT_BOOTSTRAP" GOOS="" GOARCH="" "$GOROOT_BOOTSTRAP/bin/go" build -o cmd/dist/dist ./cmd/dist
+ 
+ # -e doesn't propagate out of eval, so check success by hand.
+ eval $(./cmd/dist/dist env -p || echo FAIL=true)

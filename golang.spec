@@ -46,7 +46,7 @@
 %endif
 
 # Use golang/gcc-go as bootstrap compiler
-%ifarch %{golang_arches} ppc64le
+%ifarch %{golang_arches}
 %global golang_bootstrap 1
 %else
 %global golang_bootstrap 0
@@ -63,7 +63,7 @@
 
 # TODO get more support for shared objects
 # Build golang shared objects for stdlib
-%ifarch %{ix86} x86_64 ppc64le aarch64
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64
 %global shared 1
 %else
 %global shared 0
@@ -96,12 +96,12 @@
 
 %global go_api 1.7
 %global go_version 1.7
-%global go_commit ba22172832a971f0884106a5a8ff26a98a65623c
+%global go_commit a871464e5aca9b81a6dc54cde8c31629387cb785
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.7
-Release:        0.31git%{go_shortcommit}%{?dist}
+Release:        0.32git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -132,7 +132,7 @@ BuildRequires:  pcre-devel, glibc-static
 Provides:       go-srpm-macros
 %endif
 Provides:       go = %{version}-%{release}
-Requires:       %{name}-bin
+Requires:       %{name}-bin = %{version}-%{release}
 Requires:       %{name}-src = %{version}-%{release}
 %if 0%{?fedora} > 21
 Requires:       go-srpm-macros
@@ -388,7 +388,7 @@ popd
 rm -rfv $RPM_BUILD_ROOT%{goroot}/doc/Makefile
 
 # put binaries to bindir, linked to the arch we're building,
-# leave the arch independent pieces in %{goroot}
+# leave the arch independent pieces in {goroot}
 mkdir -p $RPM_BUILD_ROOT%{goroot}/bin/linux_%{gohostarch}
 ln -sf %{goroot}/bin/go $RPM_BUILD_ROOT%{goroot}/bin/linux_%{gohostarch}/go
 ln -sf %{goroot}/bin/gofmt $RPM_BUILD_ROOT%{goroot}/bin/linux_%{gohostarch}/gofmt
@@ -449,12 +449,12 @@ cd ..
 
 %post bin
 %{_sbindir}/update-alternatives --install %{_bindir}/go \
-	go %{goroot}/bin/go 90 \
-	--slave %{_bindir}/gofmt gofmt %{goroot}/bin/gofmt
+    go %{goroot}/bin/go 90 \
+    --slave %{_bindir}/gofmt gofmt %{goroot}/bin/gofmt
 
 %preun bin
 if [ $1 = 0 ]; then
-	%{_sbindir}/update-alternatives --remove go %{goroot}/bin/go
+    %{_sbindir}/update-alternatives --remove go %{goroot}/bin/go
 fi
 
 
@@ -512,6 +512,10 @@ fi
 %endif
 
 %changelog
+* Fri Jun 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.32gita871464
+- rebase to a871464e5aca9b81a6dc54cde8c31629387cb785
+- bootstrap patch clean up
+
 * Thu Jun 02 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.31gitba22172
 - rebase to ba22172832a971f0884106a5a8ff26a98a65623c
 
