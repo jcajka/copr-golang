@@ -93,7 +93,7 @@
 
 Name:           golang
 Version:        1.5.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Epoch:          1
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -117,7 +117,7 @@ BuildRequires:  hostname
 BuildRequires:  net-tools
 %endif
 # for tests
-BuildRequires:  pcre-devel, glibc-static
+BuildRequires:  pcre-devel, glibc-static, perl
 
 Provides:       go = %{version}-%{release}
 Requires:       %{name}-bin
@@ -136,6 +136,7 @@ Patch1:         golang-1.2-remove-ECC-p224.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1290543
 # https://github.com/golang/go/issues/8265
 Patch2:         bz1290543.patch
+Patch3:         CVE-2016-5386.patch
 
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
@@ -270,6 +271,8 @@ Summary:        Golang shared object libraries
 %patch1 -p1
 
 %patch2 -p1
+
+%patch3 -p1 -b .httpoxy
 
 # use the arch dependent path in the bootstrap
 %patch212 -p1
@@ -432,6 +435,10 @@ export GO_LDFLAGS="-linkmode internal"
 %if !%{cgo_enabled} || !%{external_linker}
 export CGO_ENABLED=0
 %endif
+
+# make sure to not timeout
+export GO_TEST_TIMEOUT_SCALE=2
+
 %if %{fail_on_tests}
 ./run.bash --no-rebuild -v -v -v -k
 %else
@@ -505,6 +512,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.4-2
+- fix CVE-2016-5386
+
 * Mon May 30 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.4-1
 - rebase to 1.5.4
 - resolves bz1324344 - CVE-2016-3959
