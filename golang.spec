@@ -31,15 +31,15 @@
 
 # Golang build options.
 
-# Buid golang using external/internal(close to cgo disabled) linking.
-%ifarch %{golang_arches} %{power64} s390x
+# Build golang using external/internal(close to cgo disabled) linking.
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64 s390x
 %global external_linker 1
 %else
 %global external_linker 0
 %endif
 
 # Build golang with cgo enabled/disabled(later equals more or less to internal linking).
-%ifarch %{golang_arches} %{power64} s390x
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64 s390x
 %global cgo_enabled 1
 %else
 %global cgo_enabled 0
@@ -51,17 +51,14 @@
 %else
 %global golang_bootstrap 0
 %endif
-# boostrap(with internal linking) using gcc-go fails due to bug in tests(https://github.com/golang/go/issues/12629)
-# make check not to fail due to it
 
-# Controls what ever we fails on failed tests
-%ifarch %{golang_arches} %{power64}
+# Controls what ever we fail on failed tests
+%ifarch %{ix86} x86_64 %{arm} aarch64 %{power64}
 %global fail_on_tests 1
 %else
 %global fail_on_tests 0
 %endif
 
-# TODO get more support for shared objects
 # Build golang shared objects for stdlib
 %ifarch %{ix86} x86_64 ppc64le %{arm} aarch64
 %global shared 1
@@ -96,23 +93,15 @@
 
 %global go_api 1.7
 %global go_version 1.7
-%global go_commit c80e0d374ba3caf8ee32c6fe4a5474fa33928086
-%global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.7
-Release:        0.39git%{go_shortcommit}%{?dist}
+Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
 URL:            http://golang.org/
-# upstream source tarball processed by source.sh in this repo 
-# (folder renamed to go)
-Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_shortcommit}.tar.gz
-# to avoid shipping whole tar-ed repo
-# generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
-Source1: VERSION
-Source2: macros.golang
+Source0:        https://storage.googleapis.com/golang/go%{go_version}.src.tar.gz
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -128,16 +117,10 @@ BuildRequires:  net-tools
 # for tests
 BuildRequires:  pcre-devel, glibc-static, perl
 
-%if 0%{?rhel}
-Provides:       go-srpm-macros
-%endif
 Provides:       go = %{version}-%{release}
 Requires:       %{name}-bin = %{version}-%{release}
 Requires:       %{name}-src = %{version}-%{release}
-%if 0%{?fedora} > 21
 Requires:       go-srpm-macros
-%endif
-
 
 Patch0:         golang-1.2-verbose-build.patch
 
@@ -166,7 +149,7 @@ Obsoletes:      %{name}-vim < 1.4
 Obsoletes:      emacs-%{name} < 1.4
 
 # These are the only RHEL/Fedora architectures that we compile this package for
-ExclusiveArch:  %{golang_arches} %{power64} s390x
+ExclusiveArch:  %{golang_arches}
 
 Source100:      golang-gdbinit
 
@@ -232,6 +215,9 @@ Obsoletes:      %{name}-pkg-netbsd-arm < 1.4.99
 Obsoletes:      %{name}-pkg-openbsd-386 < 1.4.99
 Obsoletes:      %{name}-pkg-openbsd-amd64 < 1.4.99
 
+Obsoletes:      golang-vet < 0-12.1
+Obsoletes:      golang-cover < 0-12.1
+
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
 
@@ -275,7 +261,7 @@ Summary:        Golang shared object libraries
 # disable TestGdbPython
 %patch213 -p1 -b .gdb
 
-cp %{SOURCE1} .
+%patch215 -p1
 
 %build
 # print out system information
@@ -315,7 +301,7 @@ popd
 
 # build shared std lib
 %if %{shared}
-GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -buildmode=shared -v -x std
+GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -buildmode=shared std
 %endif
 
 %install
@@ -346,17 +332,17 @@ tests_list=$cwd/go-tests.list
 rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
 touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
 pushd $RPM_BUILD_ROOT%{goroot}
-	find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
-	find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
+    find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
+    find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-	find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
-	find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -printf '%{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -printf '%{goroot}/%p\n' >> $pkg_list
 
-	find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
-	find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
+    find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
+    find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
 
-	find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
-	find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
+    find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
+    find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
 
 %if %{shared}
     mkdir -p %{buildroot}/%{_libdir}/
@@ -375,13 +361,13 @@ pushd $RPM_BUILD_ROOT%{goroot}
 	find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
 %endif
 
-	find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
-	find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $tests_list
-	# this is only the zoneinfo.zip
-	find lib/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find lib/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
+    find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
+    find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $tests_list
+    # this is only the zoneinfo.zip
+    find lib/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find lib/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
 popd
 
 # remove the doc Makefile
@@ -409,18 +395,6 @@ ln -sf /etc/alternatives/gofmt $RPM_BUILD_ROOT%{_bindir}/gofmt
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d
 cp -av %{SOURCE100} $RPM_BUILD_ROOT%{_sysconfdir}/gdbinit.d/golang.gdb
 
-#macros.golang
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%if 0%{?rhel} > 6 || 0%{?fedora} > 0
-mkdir -p $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d
-cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_rpmconfigdir}/macros.d/macros.golang
-%else
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
-cp -av %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.golang
-%endif
-%endif
-
-
 %check
 export GOROOT=$(pwd -P)
 export PATH="$GOROOT"/bin:"$PATH"
@@ -444,7 +418,7 @@ export GO_TEST_TIMEOUT_SCALE=2
 %else
 ./run.bash --no-rebuild -v -v -v -k || :
 %endif
-cd ..
+
 
 
 %post bin
@@ -473,13 +447,6 @@ fi
 %exclude %{goroot}/doc/
 %exclude %{goroot}/misc/
 %{goroot}/*
-%if 0%{?rhel} > 5 || 0%{?fedora} < 21
-%if 0%{?rhel} > 6 || 0%{?fedora} > 0
-%{_rpmconfigdir}/macros.d/macros.golang
-%else
-%{_sysconfdir}/rpm/macros.golang
-%endif
-%endif
 
 # ensure directory ownership, so they are cleaned up if empty
 %dir %{gopath}
@@ -512,238 +479,69 @@ fi
 %endif
 
 %changelog
-* Wed Jul 27 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.39gitc80e0d3
-- rebase to c80e0d374ba3caf8ee32c6fe4a5474fa33928086
-
-* Tue Jul 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.38gitea2376f
-- rebase to ea2376fcea0be75c856ebd199c0ad0f98192d406
-
-* Tue Jul 12 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.37gita84b18a
-- rebase to a84b18ac865257c50d8812e39d244b57809fc8c8
-
-* Mon Jul 04 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.36git003a68b
-- rebase to 003a68bc7fcb917b5a4d92a5c2244bb1adf8f690
-
-* Tue Jun 28 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.35gite0c8af0
-- rebase to e0c8af090ea1ccc32d06ae75b653446d2a9d6f87
-
-* Tue Jun 21 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.34gitd282427
-- rebase to d28242724872c6ab82d53a71fc775095d1171ee7
-
-* Mon Jun 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.33git595426c
-- rebase to 595426c0d903a3686bdfe6d0e8ef268a60c19896
-
-* Fri Jun 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.32gita871464
-- rebase to a871464e5aca9b81a6dc54cde8c31629387cb785
-- bootstrap patch clean up
-
-* Thu Jun 02 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.31gitba22172
-- rebase to ba22172832a971f0884106a5a8ff26a98a65623c
-
-* Wed Jun 01 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.30git88ae649
-- rebase to 88ae6495d086ed5b0acb94d5adc49434ec47a675
-
-* Thu May 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.29git8a1dc32
-- fix build for 32bit intel
-- rebase to 8a1dc3244725c2afd170025fc616df840b464a99
-
-* Wed May 25 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.28git72eb46c
-- new shared lib packaging
-- rebase to 72eb46c5a086051e3677579a0810922724eb6a6d
-
-* Tue May 24 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.27git7a9f6c2
-- rebase to 7a9f6c2b56bd87ff7f9296344c9e63cc46194428
-
-* Mon May 16 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.26gita101b85
-- rebase to a101b85e00f302706d8b1de1d2173a154d5f54cc
-
-* Fri May 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.25git15f2d0e
-- rebase to 15f2d0e45227f68024f3415d9466055877b70426
-
-* Thu May 12 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.24git81b70f3
-- rebase to 81b70f3751374ccd1eda2f536156dd91cd9f9c9b
-
-* Wed May 11 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.23gitb4538d7
-- rebase to b4538d7aaa1a600dc1d3724f9aecb5c8039e1324
-
-* Mon May 09 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.21git87a2ae1
-- rebase to 87a2ae1fa25677dc9097a25292c54b7b9dac2c9d
-
-* Tue May 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.20git2f41edf
-- rebase to 2f41edf120923000c92ed65ab501590fb1c8c548
-
-* Tue May 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.19gitfcd7c02
-- rebase to fcd7c02c70a110c6f6dbac30ad4ac3eb435ac3fd
-
-* Mon May 02 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.18gite50346d
-- rebase to e50346d26a935cd43023856d0df65a158d867c00
-
-* Thu Apr 28 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.17git80e9a7f
-- rebase to 80e9a7f0797c73b27471eb4b371baa1c7ccb427b
-
-* Mon Apr 25 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.16git093ac15
-- rebase to 093ac15a14137b4a9454442ae9fea282e5c09180
-
-* Mon Apr 18 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.15git95df0c6
-- rebase to 95df0c6ab93f6a42bdc9fd45500fd4d56bfc9add
-
-* Fri Apr 15 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.14git8955745
-- rebase to 8955745bfb9a3682e78b71fb8cb343abc4bd72a6
-
-* Wed Apr 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.13gitb6531fa
-- rebase to 6531fab06fc4667b7d167c7e3ee936f28bac68e2
-
-* Tue Apr 12 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.12gitb6cd6d7
-- rebase to b6cd6d7d3211bd9030dec4115b6202d93fe570a3
-
-* Mon Apr 11 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.11git720c4c0
-- rebase to 720c4c016c75d37d14e0621696127819c8a73b0b
-
-* Fri Apr 08 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.10git4dae828
-- rebase to 4dae828f77a37ed87401f7877998b241f0d2c33e
-
-* Tue Apr 05 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.9git3bbede0
-- rebase to 3bbede0c512ca645fa19522480c0200ee4711bf3
-
-* Fri Apr 01 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.8gitea306ae
-- rebase to ea306ae625d001a43ef20163739593a21be51f97
-
-* Wed Mar 30 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.7git897dcdb
-- rebase to 897dcdb5ecc001fac328c53806f8a1dbf2e8c3fd
-
-* Tue Mar 29 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.6git45d334e
-- rebase to 45d334ecf1b2bcbf0f8667d4c772ef3db0e03587
-
-* Thu Mar 24 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.5gitebd67ba
-- rebase to ebd67ba588eabd5bf968b5bd14dff21a1a1b1be4
-
-* Wed Mar 23 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.4git1374515
-- rebase to 1374515a1cf2279c2e47a4ee03a3616781814ad0
-
-* Tue Mar 22 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.3git77f4b77
-- prepare for s390x
-- rebase to 77f4b773e72b0840a1ce0b314cba44dff9fbaf31
-
-* Mon Mar 21 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.2gitcd187e9
-- rebase to cd187e9102bd6c55bb611a0b0f35fc4a7e0fbc51
-
-* Mon Mar 07 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.1gited81169
-- rebase to ed8116989d84ba50f16cf7a88b5c0a44aa650087
-- rebased p224 removal patch
-- move to 1.7
-
-* Wed Feb 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.33git0ed70ef
-- rebase to 0ed70efc6b7ec096603c58f27c2668af3862bb3c
-
-* Tue Feb 02 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.32gitf309bf3
-- rebase to f309bf3eeff8343e557a9798e42ac72b37da3f0a
-
-* Mon Feb 01 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.31gitaf15bee
-- rebase to af15beeab5ff9cde411c3db086ca9a24ace4c898
-
-* Tue Jan 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.30git0408ca7
-- rebase to 0408ca7de12d72025d40c4d28fd8d9fb142b3c87
-
-* Mon Jan 25 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.29git801bebe
-- rebase to 801bebefa91205b0b69f2458701aac8169294884
-
-* Fri Jan 22 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.28git1b6d55a
-- rebase to 1b6d55acab9199e09f9134ff3ac359647767f741
-
-* Tue Jan 19 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.27gitc7754c8
-- rebase to c7754c8f54a1ace5fc0a8e36df809c713d2623d6
-
-* Mon Jan 18 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.26git01b8640
-- rebase to 01b86400d94e3261f4163a9fc894596a4596571f
-
-* Thu Jan 14 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.25gitefd93a4
-- rebase to efd93a412eb5941d767b70097e93a589747de34f
-
-* Wed Jan 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.24git771da53
-- rebase to 771da53958618108c8ea56a69412eaeaae79e0ae
-
-* Mon Jan 11 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.23git109d54a
-- rebase to 109d54a32d15b805769d4c05e78367f126a8d7f0
-
-* Thu Jan 07 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.22git305b4ba
-- rebase to 305b4baf41ecbaa3469428b7debb389bd1527804
-- mention Public Domain in License tag
-
-* Wed Jan 06 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.21git91f997b
-- rebase to 91f997be723a0f88df0c42051f29c23ef90db0c5
-
-* Tue Jan 05 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.20git4b0bc7c
-- rebase to 4b0bc7c3a14ac446bc13d22098de8db382205401
-
-* Mon Jan 04 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.19gite2093cd
-- rebase to e2093cdeef8dcf0303ce3d8e79247c71ed53507d
-
-* Tue Dec 15 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.18git3540376
-- rebase to 3540376b7067911fe1e02cb25e10b34ff789c630
-
-* Mon Dec 14 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.17git24a7955
-- rebase to 24a7955c74e5617492c256bfad03904d6f169b10
-
-* Fri Dec 11 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.16git8545ea9
-- rebase to 8545ea9cee087fd0fbac41bba7616d2fc4f2bc19
-
-* Thu Dec 10 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.15gite05b48e
-- rebase to e05b48e22c3cc4ad334fdd9542bb9a69370cf79a
-
-* Wed Dec 09 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.14git9a89ac3
-- rebase to 9a89ac35fe5d5dfaed307544b5cc290bd821dea1
-
-* Tue Dec 08 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.13gitaa487e6
-- rebase to aa487e66f869785837275ee20441a53888a51bb2
-
-* Mon Dec 07 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.12git84a875c
-- rebase to 84a875caa6de1b404dad596b1b6949e436168c76
-
-* Fri Dec 04 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.11git8854bdb
-- rebase to 8854bdbd76d66a39b35980cee6643b4d4bd48fd4
-
-* Wed Dec 02 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.10git0ea1c1f
-- rebase to 0ea1c1f6715c6fe33c38b6292ce2bdccaa86f0e2
-
-* Tue Dec 01 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.9gitf000523
-- rebase to f000523018e80471f51e29cae117831157d8dfb8
-
-* Fri Nov 27 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.8git98abf29
-- rebase to 98abf2937e42d560f0a8ba3c9e5bd5351c5316e6
-
-* Thu Nov 26 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.7git21efa7b
-- rebase to 21efa7b2bc872958bcb252f5ab4dc52b2b0abeae
-- removed go1.5beta2-disable-TestCloneNEWUSERAndRemapNoRootDisableSetgroups.patch
-- make check 'more' verbose
-
-* Wed Nov 25 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.6gite5956bc
-- rebase to e5956bca418bb8528509665ae753eada2024b9e3
-
-* Tue Nov 24 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.5gitc28a8e4
-- rebase to c28a8e4553fed920425c6c9cb32d20f2da2f7a9a
-- enable shared build on i686
-
-* Mon Nov 23 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.4git0417872
-- rebase to 041787280976d0bad15c646fc7c7bbfef76d7ee5
-- use golang as bootstrap compiler on ppc64le
-
-* Thu Nov 19 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.3gitaae81d9
-- rebase to aae81d948cb7b4fb6e55b96cbba6ae2131d46e25
-- minor spec tweak
-
-* Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.2git25a28da
-- EPEL support
-
-* Mon Nov 16 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.1git25a28da
-- rebase to 25a28da0807f3fa85588fb219f6fa40314bde675
-
-* Fri Nov 13 2015 Jakub Čajka <jcajka@redhat.com> - 1.6-0.git3073797
-- rebase to upstream master branch commit 3073797c37e168f3671880c683a228f9f8f942e3
-
-* Tue Nov 03 2015 Jakub Čajka <jcajka@redhat.com> - 1.5.1-2
+* Tue Aug 23 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-1
+- update to released version
+- related: BZ#1342090, BZ#1357394
+
+* Mon Aug 08 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.3.rc5
+- Obsolete golang-vet and golang-cover from golang-googlecode-tools package
+  vet/cover binaries are provided by golang-bin rpm (thanks to jchaloup)
+- clean up exclusive arch after s390x boostrap
+- resolves: #1268206
+
+* Wed Aug 03 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.2.rc5
+- rebase to go1.7rc5
+- Resolves: BZ#1342090
+
+* Thu Jul 21 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.7-0.1.rc2
+- https://fedoraproject.org/wiki/Changes/golang1.7
+
+* Tue Jul 19 2016 Jakub Čajka <jcajka@redhat.com> - 1.7-0.0.rc2
+- rebase to 1.7rc2
+- added s390x build
+- improved shared lib packaging
+- Resolves: bz1357602 - CVE-2016-5386
+- Resolves: bz1342090, bz1342090
+
+* Tue Apr 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.2-1
+- rebase to 1.6.2
+- Resolves: bz1329206 - golang-1.6.2.src is available
+
+* Wed Apr 13 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.1-1
+- rebase to 1.6.1
+- Resolves: bz1324344 - CVE-2016-3959
+- Resolves: bz1324951 - prelink is gone, /etc/prelink.conf.d/* is no longer used
+- Resolves: bz1326366 - wrong epoll_event struct for ppc64le/ppc64
+
+* Mon Feb 22 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-1
+- Resolves: bz1304701 - rebase to go1.6 release
+- Resolves: bz1304591 - fix possible stack miss-alignment in callCgoMmap
+
+* Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.6-0.3.rc1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
+* Fri Jan 29 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.2.rc1
+- disabled cgo and external linking on ppc64
+
+* Thu Jan 28 2016 Jakub Čajka <jcajka@redhat.com> - 1.6-0.1.rc1
+- Resolves bz1292640, rebase to pre-release 1.6
+- bootstrap for PowerPC
+- fix rpmlint errors/warning
+
+* Thu Jan 14 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.3-1
+- rebase to 1.5.3
+- resolves bz1293451, CVE-2015-8618
+- apply timezone patch, avoid using bundled data
+- print out rpm build system info
+
+* Fri Dec 11 2015 Jakub Čajka <jcajka@redhat.com> - 1.5.2-2
+- bz1290543 Accept x509 certs with negative serial
+
+* Tue Dec 08 2015 Jakub Čajka <jcajka@redhat.com> - 1.5.2-1
+- bz1288263 rebase to 1.5.2
 - spec file clean up
 - added build options
-- added powerpc build support
+- scrubbed "Project Gutenberg License"
 
 * Mon Oct 19 2015 Vincent Batts <vbatts@fedoraproject.org> - 1.5.1-1
 - bz1271709 include patch from upstream fix
@@ -954,7 +752,7 @@ fi
 - include sub-packages for compiler toolchains, for all golang supported architectures
 
 * Wed Mar 26 2014 Vincent Batts <vbatts@fedoraproject.org> 1.2.1-2
-- provide a system rpm macros. Starting with %gopath
+- provide a system rpm macros. Starting with gopath
 
 * Tue Mar 04 2014 Adam Miller <maxamillion@fedoraproject.org> 1.2.1-1
 - Update to latest upstream
