@@ -91,7 +91,7 @@
 
 Name:           golang
 Version:        1.6.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -214,6 +214,9 @@ Obsoletes:      %{name}-pkg-netbsd-amd64 < 1.4.99
 Obsoletes:      %{name}-pkg-netbsd-arm < 1.4.99
 Obsoletes:      %{name}-pkg-openbsd-386 < 1.4.99
 Obsoletes:      %{name}-pkg-openbsd-amd64 < 1.4.99
+
+Obsoletes:      golang-vet < 0-12.1
+Obsoletes:      golang-cover < 0-12.1
 
 Requires(post): %{_sbindir}/update-alternatives
 Requires(postun): %{_sbindir}/update-alternatives
@@ -484,6 +487,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 29 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.3-3
+- obsolete golang-vet
+
 * Tue Jul 26 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.3-2
 - add BR dep on perl
 
