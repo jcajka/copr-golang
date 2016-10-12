@@ -1,0 +1,60 @@
+From 2da5633eb9091608047881953f75b489a3134cdc Mon Sep 17 00:00:00 2001
+From: Brad Fitzpatrick <bradfitz@golang.org>
+Date: Mon, 1 Aug 2016 21:54:40 -0700
+Subject: [PATCH] runtime: fix nanotime for macOS Sierra, again.
+
+macOS Sierra beta4 changed the kernel interface for getting time.
+DX now optionally points to an address for additional info.
+Set it to zero to avoid corrupting memory.
+
+Fixes #16570
+
+Change-Id: I9f537e552682045325cdbb68b7d0b4ddafade14a
+Reviewed-on: https://go-review.googlesource.com/25400
+Reviewed-by: David Crawshaw <crawshaw@golang.org>
+Reviewed-by: Ian Lance Taylor <iant@golang.org>
+Reviewed-by: Quentin Smith <quentin@golang.org>
+Run-TryBot: Brad Fitzpatrick <bradfitz@golang.org>
+Reviewed-by: Austin Clements <austin@google.com>
+TryBot-Result: Gobot Gobot <gobot@golang.org>
+---
+ src/runtime/sys_darwin_386.s   | 7 ++++---
+ src/runtime/sys_darwin_amd64.s | 1 +
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/runtime/sys_darwin_386.s b/src/runtime/sys_darwin_386.s
+index 83f4709..b5e65e6 100644
+--- a/src/runtime/sys_darwin_386.s
++++ b/src/runtime/sys_darwin_386.s
+@@ -196,15 +196,16 @@ timeloop:
+ 
+ systime:
+ 	// Fall back to system call (usually first call in this thread)
+-	LEAL	12(SP), AX	// must be non-nil, unused
++	LEAL	16(SP), AX	// must be non-nil, unused
+ 	MOVL	AX, 4(SP)
+ 	MOVL	$0, 8(SP)	// time zone pointer
++	MOVL	$0, 12(SP)	// required as of Sierra; Issue 16570
+ 	MOVL	$116, AX
+ 	INT	$0x80
+ 	CMPL	AX, $0
+ 	JNE	inreg
+-	MOVL	12(SP), AX
+-	MOVL	16(SP), DX
++	MOVL	16(SP), AX
++	MOVL	20(SP), DX
+ inreg:
+ 	// sec is in AX, usec in DX
+ 	// convert to DX:AX nsec
+diff --git a/src/runtime/sys_darwin_amd64.s b/src/runtime/sys_darwin_amd64.s
+index e4837ce..ea2cc06 100644
+--- a/src/runtime/sys_darwin_amd64.s
++++ b/src/runtime/sys_darwin_amd64.s
+@@ -157,6 +157,7 @@ systime:
+ 	// Fall back to system call (usually first call in this thread).
+ 	MOVQ	SP, DI
+ 	MOVQ	$0, SI
++	MOVQ	$0, DX  // required as of Sierra; Issue 16570
+ 	MOVL	$(0x2000000+116), AX
+ 	SYSCALL
+ 	CMPQ	AX, $0

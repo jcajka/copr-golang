@@ -91,7 +91,7 @@
 
 Name:           golang
 Version:        1.6.3
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -137,6 +137,17 @@ Patch213:       go1.5beta1-disable-TestGdbPython.patch
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
 Patch215:       ./go1.5-zoneinfo_testing_only.patch
+
+# Backport of https://go-review.googlesource.com/#/c/20471/
+Patch216: runtime-use-entire-address-space-on-32-bit.patch
+
+# Backport of https://github.com/golang/go/issues/16570
+# and https://github.com/golang/go/issues/16606
+Patch217: macos-01.patch
+Patch218: macos-02.patch
+
+# Fix for https://github.com/golang/go/issues/17276
+Patch219: tzdata-fix.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -262,6 +273,13 @@ Summary:        Golang shared object libraries
 %patch213 -p1
 
 %patch215 -p1
+
+%patch216 -p1
+
+%patch217 -p1
+%patch218 -p1
+
+%patch219 -p1
 
 %build
 # print out system information
@@ -487,6 +505,11 @@ fi
 %endif
 
 %changelog
+* Wed Oct 12 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.3-4
+- Make possible to use whole address space on 32bit
+- Fix nanotime for macOS Sierra
+- Fix tzdata/time tests
+
 * Mon Aug 29 2016 Jakub Čajka <jcajka@redhat.com> - 1.6.3-3
 - obsolete golang-vet
 
