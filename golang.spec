@@ -96,12 +96,12 @@
 
 %global go_api 1.8
 %global go_version 1.8
-%global go_commit f4c7a12c2c4b0aef99b4957a778736a4da9ae4ec 
+%global go_commit 3df059ece5d4c575abdf61b4b955f0ba292e5168
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.8
-Release:        0.20git%{go_shortcommit}%{?dist}
+Release:        0.21git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -146,10 +146,6 @@ Patch1:         golang-1.2-remove-ECC-p224.patch
 
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
-
-# disable TestGdbPython
-# https://github.com/golang/go/issues/11214
-Patch213:       go1.5beta1-disable-TestGdbPython.patch
 
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
@@ -274,9 +270,6 @@ Summary:        Golang shared object libraries
 
 # use the arch dependent path in the bootstrap
 %patch212 -p1 -b .bootstrap
-
-# disable TestGdbPython
-%patch213 -p1 -b .gdb
 
 cp %{SOURCE1} .
 
@@ -515,6 +508,9 @@ fi
 %endif
 
 %changelog
+* Mon Nov 07 2016 Jakub Čajka <jcajka@redhat.com> - 1.8-0.21git3df059e
+- rebase to 3df059ece5d4c575abdf61b4b955f0ba292e5168
+
 * Mon Oct 31 2016 Jakub Čajka <jcajka@redhat.com> - 1.8-0.20gitf4c7a12
 - rebase to f4c7a12c2c4b0aef99b4957a778736a4da9ae4ec
 
