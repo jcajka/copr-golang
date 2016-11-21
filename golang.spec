@@ -96,12 +96,12 @@
 
 %global go_api 1.8
 %global go_version 1.8
-%global go_commit 2f76c1985fa8bbb0fb09af6600445b5c7d4d5cb4
+%global go_commit 0bae74e8c9b5fab3baf61bde0169f4aa5e287bdc 
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.8
-Release:        0.23git%{go_shortcommit}%{?dist}
+Release:        0.24git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -140,9 +140,6 @@ Requires:       go-srpm-macros
 
 
 Patch0:         golang-1.2-verbose-build.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1038683
-Patch1:         golang-1.2-remove-ECC-p224.patch
 
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
@@ -264,9 +261,6 @@ Summary:        Golang shared object libraries
 
 # increase verbosity of build
 %patch0 -p1 -b .verbose
-
-# remove the P224 curve
-%patch1 -p1 -b .curve
 
 # use the arch dependent path in the bootstrap
 %patch212 -p1 -b .bootstrap
@@ -510,6 +504,10 @@ fi
 %endif
 
 %changelog
+* Mon Nov 21 2016 Jakub Čajka <jcajka@redhat.com> - 1.8-0.24git0bae74e
+- rebase to 0bae74e8c9b5fab3baf61bde0169f4aa5e287bdc
+- re-enable p224
+
 * Mon Nov 14 2016 Jakub Čajka <jcajka@redhat.com> - 1.8-0.23git2f76c19
 - rebase to 2f76c1985fa8bbb0fb09af6600445b5c7d4d5cb4
 
