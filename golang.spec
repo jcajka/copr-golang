@@ -93,7 +93,7 @@
 
 Name:           golang
 Version:        1.5.4
-Release:        3%{?dist}
+Release:        4%{?dist}
 Epoch:          1
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -130,8 +130,6 @@ Provides:       go-srpm-macros
 
 Patch0:         golang-1.2-verbose-build.patch
 
-# https://bugzilla.redhat.com/show_bug.cgi?id=1038683
-Patch1:         golang-1.2-remove-ECC-p224.patch
 # Accept x509 certs with negative serial
 # https://bugzilla.redhat.com/show_bug.cgi?id=1290543
 # https://github.com/golang/go/issues/8265
@@ -155,6 +153,8 @@ Patch215:       ./go1.5-zoneinfo_testing_only.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1271709
 Patch216:       ./golang-1.5.1-a3156aaa12.patch
+
+Patch217: tzdata-fix.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -270,9 +270,6 @@ Summary:        Golang shared object libraries
 # increase verbosity of build
 %patch0 -p1
 
-# remove the P224 curve
-%patch1 -p1
-
 %patch2 -p1
 
 %patch3 -p1 -b .httpoxy
@@ -289,6 +286,8 @@ Summary:        Golang shared object libraries
 %patch215 -p1
 
 %patch216 -p1
+
+%patch217 -p1
 
 cp %{SOURCE1} "$(pwd)/src/compress/bzip2/testdata/Mark.Twain-Tom.Sawyer.txt.bz2"
 
@@ -515,6 +514,9 @@ fi
 %endif
 
 %changelog
+* Thu Nov 24 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.4-4
+- re-enable p224
+
 * Mon Aug 29 2016 Jakub Čajka <jcajka@redhat.com> - 1.5.4-3
 - obsolete golang-vet
 
