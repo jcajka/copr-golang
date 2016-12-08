@@ -1,7 +1,7 @@
 diff -up go/src/cmd/dist/buildtool.go.bootstrap go/src/cmd/dist/buildtool.go
---- go/src/cmd/dist/buildtool.go.bootstrap	2016-06-06 14:26:37.638374670 +0200
-+++ go/src/cmd/dist/buildtool.go	2016-06-06 14:30:33.873262307 +0200
-@@ -111,15 +111,23 @@ func bootstrapBuildTools() {
+--- go/src/cmd/dist/buildtool.go.bootstrap	2016-10-24 12:54:57.620563325 +0200
++++ go/src/cmd/dist/buildtool.go	2016-10-24 13:12:25.036466602 +0200
+@@ -131,17 +131,25 @@ func bootstrapBuildTools() {
  	defer os.Setenv("GOBIN", os.Getenv("GOBIN"))
  	os.Setenv("GOBIN", "")
  
@@ -21,15 +21,17 @@ diff -up go/src/cmd/dist/buildtool.go.bootstrap go/src/cmd/dist/buildtool.go
  	// Run Go 1.4 to build binaries. Use -gcflags=-l to disable inlining to
  	// workaround bugs in Go 1.4's compiler. See discussion thread:
  	// https://groups.google.com/d/msg/golang-dev/Ss7mCKsvk8w/Gsq7VYI0AwAJ
--	run(workspace, ShowOutput|CheckExit, pathf("%s/bin/go", goroot_bootstrap), "install", "-gcflags=-l", "-v", "bootstrap/...")
-+	run(workspace, ShowOutput|CheckExit, bingopath, "install", "-gcflags=-l", "-v", "bootstrap/...")
+ 	// Use the math_big_pure_go build tag to disable the assembly in math/big
+ 	// which may contain unsupported instructions.
+-	run(workspace, ShowOutput|CheckExit, pathf("%s/bin/go", goroot_bootstrap), "install", "-gcflags=-l", "-tags=math_big_pure_go", "-v", "bootstrap/cmd/...")
++	run(workspace, ShowOutput|CheckExit, bingopath, "install", "-gcflags=-l", "-v", "-tags=math_big_pure_go", "bootstrap/...")
  
  	// Copy binaries into tool binary directory.
  	for _, name := range bootstrapDirs {
 diff -up go/src/make.bash.bootstrap go/src/make.bash
---- go/src/make.bash.bootstrap	2016-06-06 14:26:37.628374633 +0200
-+++ go/src/make.bash	2016-06-06 14:26:37.638374670 +0200
-@@ -118,8 +118,15 @@ echo '##### Building Go bootstrap tool.'
+--- go/src/make.bash.bootstrap	2016-10-24 12:54:57.606563267 +0200
++++ go/src/make.bash	2016-10-24 12:54:57.620563325 +0200
+@@ -120,8 +120,15 @@ echo '##### Building Go bootstrap tool.'
  echo cmd/dist
  export GOROOT="$(cd .. && pwd)"
  GOROOT_BOOTSTRAP=${GOROOT_BOOTSTRAP:-$HOME/go1.4}
@@ -47,7 +49,7 @@ diff -up go/src/make.bash.bootstrap go/src/make.bash
  	echo "Set \$GOROOT_BOOTSTRAP to a working Go tree >= Go 1.4." >&2
  	exit 1
  fi
-@@ -128,8 +135,6 @@ if [ "$GOROOT_BOOTSTRAP" == "$GOROOT" ];
+@@ -130,8 +137,6 @@ if [ "$GOROOT_BOOTSTRAP" == "$GOROOT" ];
  	echo "Set \$GOROOT_BOOTSTRAP to a working Go tree >= Go 1.4." >&2
  	exit 1
  fi

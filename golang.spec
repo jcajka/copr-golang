@@ -91,12 +91,12 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.7
-%global go_version 1.7.4
+%global go_api 1.8
+%global go_version 1.8beta1
 
 Name:           golang
-Version:        1.7.4
-Release:        1%{?dist}
+Version:        1.8
+Release:        0.beta1.0%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -133,21 +133,9 @@ Patch0:         golang-1.2-verbose-build.patch
 # use the arch dependent path in the bootstrap
 Patch212:       golang-1.5-bootstrap-binary-path.patch
 
-# disable TestGdbPython
-# https://github.com/golang/go/issues/11214
-Patch213:       go1.5beta1-disable-TestGdbPython.patch
-
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
 Patch215:       ./go1.5-zoneinfo_testing_only.patch
-
-#PPC64X relocation overflow fix
-Patch216: ppc64x-overflow-1.patch
-Patch217: ppc64x-overflow-2.patch
-
-# Fix for https://github.com/golang/go/issues/17276
-Patch218: tzdata-fix.patch
-
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -266,15 +254,7 @@ Summary:        Golang shared object libraries
 # use the arch dependent path in the bootstrap
 %patch212 -p1 -b .bootstrap
 
-# disable TestGdbPython
-%patch213 -p1 -b .gdb
-
 %patch215 -p1
-
-%patch216 -p1
-%patch217 -p1
-
-%patch218 -p1
 
 %build
 # print out system information
@@ -511,6 +491,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 08 2016 Jakub Čajka <jcajka@redhat.com> - 1.8-0.beta1.0
+- rebase to go1.8beta1
+
 * Tue Dec 06 2016 Jakub Čajka <jcajka@redhat.com> - 1.7.4-1
 - bump to 1.7.4
 
