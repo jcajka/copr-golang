@@ -92,11 +92,11 @@
 %endif
 
 %global go_api 1.8
-%global go_version 1.8beta2
+%global go_version 1.8rc1
 
 Name:           golang
 Version:        1.8
-Release:        0.beta2.0%{?dist}
+Release:        0.rc1.0%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -136,6 +136,9 @@ Patch212:       golang-1.5-bootstrap-binary-path.patch
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
 Patch215:       ./go1.5-zoneinfo_testing_only.patch
+
+#override default GOTRACEBACK leve using --tag=rpm_crashtraceback
+Patch216:       ./fedora.go
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -255,6 +258,8 @@ Summary:        Golang shared object libraries
 %patch212 -p1 -b .bootstrap
 
 %patch215 -p1
+
+cp %{PATCH216} ./src/runtime/
 
 %build
 # print out system information
@@ -491,6 +496,9 @@ fi
 %endif
 
 %changelog
+* Fri Jan 13 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc1.0
+- bump to rc1
+
 * Tue Jan 03 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.beta2.0
 - bump to beta2
 
