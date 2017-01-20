@@ -92,11 +92,11 @@
 %endif
 
 %global go_api 1.8
-%global go_version 1.8rc1
+%global go_version 1.8rc2
 
 Name:           golang
 Version:        1.8
-Release:        0.rc1.0%{?dist}
+Release:        0.rc2.0%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -496,6 +496,9 @@ fi
 %endif
 
 %changelog
+* Fri Jan 20 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc2.0
+- bump to rc2
+
 * Fri Jan 13 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc1.0
 - bump to rc1
 
