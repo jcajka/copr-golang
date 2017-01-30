@@ -1,0 +1,24 @@
+diff -up go/src/runtime/testdata/testprogcgo/threadpprof.go.cgo go/src/runtime/testdata/testprogcgo/threadpprof.go
+--- go/src/runtime/testdata/testprogcgo/threadpprof.go.cgo	2017-01-30 18:06:19.100546813 +0100
++++ go/src/runtime/testdata/testprogcgo/threadpprof.go	2017-01-30 18:04:22.961832149 +0100
+@@ -16,7 +16,7 @@ package main
+ int threadSalt1;
+ int threadSalt2;
+ 
+-void cpuHogThread() {
++void cpuHogThread(void) {
+ 	int foo = threadSalt1;
+ 	int i;
+ 
+diff -up go/src/runtime/testdata/testprogcgo/traceback.go.cgo go/src/runtime/testdata/testprogcgo/traceback.go
+--- go/src/runtime/testdata/testprogcgo/traceback.go.cgo	2017-01-30 18:06:03.923609736 +0100
++++ go/src/runtime/testdata/testprogcgo/traceback.go	2017-01-30 18:05:14.721617715 +0100
+@@ -24,7 +24,7 @@ static int f2() {
+ 	return f3();
+ }
+ 
+-static int f1() {
++static int f1(void) {
+ 	return f2();
+ }
+ 

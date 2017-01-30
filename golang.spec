@@ -96,7 +96,7 @@
 
 Name:           golang
 Version:        1.8
-Release:        0.rc3.0%{?dist}
+Release:        0.rc3.0.1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -139,6 +139,8 @@ Patch215:       ./go1.5-zoneinfo_testing_only.patch
 
 #override default GOTRACEBACK leve using --tag=rpm_crashtraceback
 Patch216:       ./fedora.go
+
+Patch217:       ./cgo-void.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -260,6 +262,8 @@ Summary:        Golang shared object libraries
 %patch215 -p1
 
 cp %{PATCH216} ./src/runtime/
+
+%patch217 -p1 -b .cgo
 
 %build
 # print out system information
@@ -496,6 +500,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 30 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc3.0.1
+- Workaround cgo failing with GCC7
+
 * Thu Jan 26 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc3.0
 - bump to rc3
 
