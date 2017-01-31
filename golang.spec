@@ -66,6 +66,9 @@
 %global shared 0
 %endif
 
+# Pre build std lib with -race enabled
+%global race 1
+
 # Fedora GOROOT
 %global goroot          /usr/lib/%{name}
 
@@ -96,7 +99,7 @@
 
 Name:           golang
 Version:        1.8
-Release:        0.rc3.0.1%{?dist}
+Release:        0.rc3.0.2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -250,6 +253,16 @@ Summary:        Golang shared object libraries
 %{summary}.
 %endif
 
+%if %{race}
+%package        race
+Summary:        Golang std library with -race enabled
+
+Requires:       %{name} = %{version}-%{release}
+
+%description    race
+%{summary}
+%endif
+
 %prep
 %setup -q -n go
 
@@ -306,6 +319,10 @@ popd
 GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -buildmode=shared std
 %endif
 
+%if %{race}
+GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -race std
+%endif
+
 %install
 rm -rf $RPM_BUILD_ROOT
 
@@ -328,17 +345,18 @@ cwd=$(pwd)
 src_list=$cwd/go-src.list
 pkg_list=$cwd/go-pkg.list
 shared_list=$cwd/go-shared.list
+race_list=$cwd/go-race.list
 misc_list=$cwd/go-misc.list
 docs_list=$cwd/go-docs.list
 tests_list=$cwd/go-tests.list
-rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
-touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
+rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
+touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
 pushd $RPM_BUILD_ROOT%{goroot}
     find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
     find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-    find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
-    find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -printf '%{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
 
     find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
     find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
@@ -361,6 +379,13 @@ pushd $RPM_BUILD_ROOT%{goroot}
     
 	find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
 	find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
+%endif
+
+%if %{race}
+
+    find pkg/*_race/ -type d -printf '%%%dir %{goroot}/%p\n' >> $race_list
+    find pkg/*_race/ ! -type d -printf '%{goroot}/%p\n' >> $race_list
+
 %endif
 
     find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
@@ -499,7 +524,14 @@ fi
 %files -f go-shared.list shared
 %endif
 
+%if %{race}
+%files -f go-race.list race
+%endif
+
 %changelog
+* Tue Jan 31 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc3.0.2
+- add subpackage with stdlib built with race detector enabled
+
 * Mon Jan 30 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc3.0.1
 - Workaround cgo failing with GCC7
 
