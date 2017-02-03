@@ -69,6 +69,13 @@
 %global shared 0
 %endif
 
+# Pre build std lib with -race enabled
+%ifarch x86_64
+%global race 1
+%else
+%global race 0
+%endif
+
 # Fedora GOROOT
 %global goroot          /usr/lib/%{name}
 
@@ -94,20 +101,18 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.8
-%global go_version 1.8
-%global go_commit 5b708a6b6a57fb8022da58cd4c521d0ba77126fd
+%global go_api 1.9
+%global go_version 1.9
+%global go_commit 12c58bbf81c0feca25292a2291a59e16b5ed00f6
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
-Version:        1.8
-Release:        0.28git%{go_shortcommit}%{?dist}
+Version:        1.9
+Release:        0.1git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
 URL:            http://golang.org/
-# upstream source tarball processed by source.sh in this repo 
-# (folder renamed to go)
 Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_shortcommit}.tar.gz
 # to avoid shipping whole tar-ed repo
 # generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
@@ -256,8 +261,18 @@ Summary:        Golang shared object libraries
 %{summary}.
 %endif
 
+%if %{race}
+%package        race
+Summary:        Golang std library with -race enabled
+
+Requires:       %{name} = %{version}-%{release}
+
+%description    race
+%{summary}
+%endif
+
 %prep
-%setup -q -n go
+%setup -q -n go-%{go_commit}
 
 # increase verbosity of build
 %patch0 -p1 -b .verbose
@@ -310,6 +325,10 @@ popd
 GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -buildmode=shared -v -x std
 %endif
 
+%if %{race}
+GOROOT=$(pwd) PATH=$(pwd)/bin:$PATH go install -race std
+%endif
+
 %install
 rm -rf $RPM_BUILD_ROOT
 
@@ -332,6 +351,7 @@ cwd=$(pwd)
 src_list=$cwd/go-src.list
 pkg_list=$cwd/go-pkg.list
 shared_list=$cwd/go-shared.list
+race_list=$cwd/go-race.list
 misc_list=$cwd/go-misc.list
 docs_list=$cwd/go-docs.list
 tests_list=$cwd/go-tests.list
@@ -341,8 +361,8 @@ pushd $RPM_BUILD_ROOT%{goroot}
 	find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
 	find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-	find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
-	find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -printf '%{goroot}/%p\n' >> $pkg_list
+	find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
+	find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
 
 	find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
 	find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
@@ -365,6 +385,13 @@ pushd $RPM_BUILD_ROOT%{goroot}
     
 	find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
 	find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
+%endif
+
+%if %{race}
+
+    find pkg/*_race/ -type d -printf '%%%dir %{goroot}/%p\n' >> $race_list
+    find pkg/*_race/ ! -type d -printf '%{goroot}/%p\n' >> $race_list
+
 %endif
 
 	find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
@@ -503,7 +530,15 @@ fi
 %files -f go-shared.list shared
 %endif
 
+%if %{race}
+%files -f go-race.list race
+%endif
+
 %changelog
+* Fri Feb 03 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.1git12c58bb
+- devel branch is opened again
+- rebase to
+
 * Mon Jan 16 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.28git5b708a6
 - rebase to 5b708a6b6a57fb8022da58cd4c521d0ba77126fd
 
