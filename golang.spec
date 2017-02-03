@@ -92,10 +92,10 @@
 %endif
 
 %global go_api 1.7
-%global go_version 1.7.4
+%global go_version 1.7.5
 
 Name:           golang
-Version:        1.7.4
+Version:        1.7.5
 Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -144,10 +144,6 @@ Patch215:       ./go1.5-zoneinfo_testing_only.patch
 #PPC64X relocation overflow fix
 Patch216: ppc64x-overflow-1.patch
 Patch217: ppc64x-overflow-2.patch
-
-# Fix for https://github.com/golang/go/issues/17276
-Patch218: tzdata-fix.patch
-
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -273,8 +269,6 @@ Summary:        Golang shared object libraries
 
 %patch216 -p1
 %patch217 -p1
-
-%patch218 -p1
 
 %build
 # print out system information
@@ -511,6 +505,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 03 2017 Jakub Čajka <jcajka@redhat.com> - 1.7.5-1
+- bump to 1.7.5
+
 * Tue Dec 06 2016 Jakub Čajka <jcajka@redhat.com> - 1.7.4-1
 - bump to 1.7.4
 
