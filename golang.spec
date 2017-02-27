@@ -103,12 +103,12 @@
 
 %global go_api 1.9
 %global go_version 1.9
-%global go_commit 3a20928157356f98db74db859b36d744400fc462
+%global go_commit ea5529de155cfd3f2c31698344b1ca001e0f8819
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.9
-Release:        0.3git%{go_shortcommit}%{?dist}
+Release:        0.4git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -283,6 +283,9 @@ Requires:       %{name} = %{version}-%{release}
 %patch215 -p1 -b .time
 
 cp %{SOURCE1} .
+
+# don't include chacha test vectors in buildID
+mv ./src/vendor/golang_org/x/crypto/chacha20poly1305/chacha20poly1305_test_vectors.go ./src/vendor/golang_org/x/crypto/chacha20poly1305/chacha20poly1305_vectors_test.go
 
 %build
 # print out system information
@@ -535,6 +538,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 24 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.4gitea5529d
+- bump to ea5529de155cfd3f2c31698344b1ca001e0f8819
+
 * Fri Feb 10 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.3git3a20928
 - bump to 3a20928157356f98db74db859b36d744400fc462
 
