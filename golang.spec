@@ -99,11 +99,11 @@
 %endif
 
 %global go_api 1.8
-%global go_version 1.8rc3
+%global go_version 1.8
 
 Name:           golang
 Version:        1.8
-Release:        0.rc3.0.3%{?dist}
+Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -147,7 +147,7 @@ Patch215:       ./go1.5-zoneinfo_testing_only.patch
 #override default GOTRACEBACK leve using --tag=rpm_crashtraceback
 Patch216:       ./fedora.go
 
-Patch217:       ./cgo-void.patch
+Patch217:       ./tzdata-fix.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -278,9 +278,12 @@ Requires:       %{name} = %{version}-%{release}
 
 %patch215 -p1
 
+%patch217 -p1
+
 cp %{PATCH216} ./src/runtime/
 
-%patch217 -p1 -b .cgo
+# don't include chacha test vectors in buildID
+mv ./src/vendor/golang_org/x/crypto/chacha20poly1305/chacha20poly1305_test_vectors.go ./src/vendor/golang_org/x/crypto/chacha20poly1305/chacha20poly1305_vectors_test.go
 
 %build
 # print out system information
@@ -533,6 +536,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 22 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-1
+- bump to released version
+
 * Tue Jan 31 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-0.rc3.0.3
 - race detector supported only on x86_64
 
