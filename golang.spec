@@ -103,7 +103,7 @@
 
 Name:           golang
 Version:        1.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -148,6 +148,8 @@ Patch215:       ./go1.5-zoneinfo_testing_only.patch
 Patch216:       ./fedora.go
 
 Patch217:       ./tzdata-fix.patch
+
+Patch218:       ./gnu-buildid.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -279,6 +281,8 @@ Requires:       %{name} = %{version}-%{release}
 %patch215 -p1
 
 %patch217 -p1
+
+%patch218 -p1 -b .buildid
 
 cp %{PATCH216} ./src/runtime/
 
@@ -536,6 +540,9 @@ fi
 %endif
 
 %changelog
+* Wed Apr 05 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-2
+- always generate GNU buildid
+
 * Wed Mar 22 2017 Jakub Čajka <jcajka@redhat.com> - 1.8-1
 - bump to released version
 

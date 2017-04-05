@@ -1,0 +1,78 @@
+diff -up go/src/cmd/link/internal/ld/elf.go.buildid go/src/cmd/link/internal/ld/elf.go
+--- go/src/cmd/link/internal/ld/elf.go.buildid	2017-02-16 20:12:22.000000000 +0100
++++ go/src/cmd/link/internal/ld/elf.go	2017-04-05 08:47:53.109208086 +0200
+@@ -1325,15 +1325,11 @@ func addbuildinfo(val string) {
+ 		Exitf("-B argument must start with 0x: %s", val)
+ 	}
+ 
++	var err error
+ 	ov := val
+ 	val = val[2:]
+ 
+-	const maxLen = 32
+-	if hex.DecodedLen(len(val)) > maxLen {
+-		Exitf("-B option too long (max %d digits): %s", maxLen, ov)
+-	}
+-
+-	b, err := hex.DecodeString(val)
++	buildinfo, err = extractbuildinfo(val, ov)
+ 	if err != nil {
+ 		if err == hex.ErrLength {
+ 			Exitf("-B argument must have even number of digits: %s", ov)
+@@ -1343,8 +1339,22 @@ func addbuildinfo(val string) {
+ 		}
+ 		Exitf("-B argument contains invalid hex: %s", ov)
+ 	}
++}
++
++func extractbuildinfo(val, ov string) ([]byte, error) {
++
++	const maxLen = 32
++	if hex.DecodedLen(len(val)) > maxLen {
++		Exitf("-B option too long (max %d digits): %s", maxLen, ov)
++	}
++
++	b, err := hex.DecodeString(val)
++	if err != nil {
++		return []byte{}, err
++	}
++
++	return b, nil
+ 
+-	buildinfo = b
+ }
+ 
+ // Build info note
+@@ -1909,7 +1919,7 @@ func (ctxt *Link) doelf() {
+ 	if Headtype == obj.Hopenbsd {
+ 		Addstring(shstrtab, ".note.openbsd.ident")
+ 	}
+-	if len(buildinfo) > 0 {
++	if len(buildinfo) > 0 || *flagBuildid != "" {
+ 		Addstring(shstrtab, ".note.gnu.build-id")
+ 	}
+ 	if *flagBuildid != "" {
+@@ -2344,7 +2354,10 @@ func Asmbelf(ctxt *Link, symo int64) {
+ 		phsh(pnote, sh)
+ 	}
+ 
+-	if len(buildinfo) > 0 {
++	if len(buildinfo) > 0 || *flagBuildid != "" {
++		if len(buildinfo) == 0 {
++			buildinfo, _ = extractbuildinfo(*flagBuildid, *flagBuildid)
++		}
+ 		sh := elfshname(".note.gnu.build-id")
+ 		resoff -= int64(elfbuildinfo(sh, uint64(startva), uint64(resoff)))
+ 
+@@ -2697,7 +2710,10 @@ elfobj:
+ 		if Headtype == obj.Hopenbsd {
+ 			a += int64(elfwriteopenbsdsig())
+ 		}
+-		if len(buildinfo) > 0 {
++		if len(buildinfo) > 0 || *flagBuildid != "" {
++			if len(buildinfo) == 0 {
++				buildinfo, _ = extractbuildinfo(*flagBuildid, *flagBuildid)
++			}
+ 			a += int64(elfwritebuildinfo())
+ 		}
+ 		if *flagBuildid != "" {
