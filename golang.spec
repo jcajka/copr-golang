@@ -55,7 +55,7 @@
 # make check not to fail due to it
 
 # Controls what ever we fails on failed tests
-%ifarch %{golang_arches} %{power64}
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64
 %global fail_on_tests 1
 %else
 %global fail_on_tests 0
@@ -103,12 +103,12 @@
 
 %global go_api 1.9
 %global go_version 1.9
-%global go_commit  5a45a157f2e94cb3fec38a3be8afa3bffd800067
+%global go_commit  33c34770398af5b4de54f5a0922763bd10dc2915
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
 Name:           golang
 Version:        1.9
-Release:        0.7git%{go_shortcommit}%{?dist}
+Release:        0.8git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -137,6 +137,29 @@ BuildRequires:  pcre-devel, glibc-static, perl
 Provides:       go-srpm-macros
 %endif
 Provides:       go = %{version}-%{release}
+
+# Bundled/Vendored provides
+Provides:       bundled(golang(golang.org/x/crypto/chacha20poly1305))
+Provides:       bundled(golang(golang.org/x/crypto/curve25519))
+Provides:       bundled(golang(golang.org/x/crypto/poly1305))
+Provides:       bundled(golang(golang.org/x/net/http2))
+Provides:       bundled(golang(golang.org/x/net/http2/hpack))
+Provides:       bundled(golang(golang.org/x/net/idna))
+Provides:       bundled(golang(golang.org/x/net/lex))
+Provides:       bundled(golang(golang.org/x/net/lex/httplex))
+Provides:       bundled(golang(golang.org/x/net/lif))
+Provides:       bundled(golang(golang.org/x/net/route))
+Provides:       bundled(golang(golang.org/x/text/transform))
+Provides:       bundled(golang(golang.org/x/text/unicode))
+Provides:       bundled(golang(golang.org/x/text/unicode/norm))
+Provides:       bundled(golang(golang.org/x/text/width))
+Provides:       bundled(golang(golang.org/x/arch/arm))
+Provides:       bundled(golang(golang.org/x/arch/arm/armasm))
+Provides:       bundled(golang(golang.org/x/arch/ppc64))
+Provides:       bundled(golang(golang.org/x/arch/ppc64/ppc64asm))
+Provides:       bundled(golang(golang.org/x/arch/x86))
+Provides:       bundled(golang(golang.org/x/arch/x86/x86asm))
+
 Requires:       %{name}-bin = %{version}-%{release}
 Requires:       %{name}-src = %{version}-%{release}
 %if 0%{?fedora} > 21
@@ -145,9 +168,6 @@ Requires:       go-srpm-macros
 
 
 Patch0:         golang-1.2-verbose-build.patch
-
-# use the arch dependent path in the bootstrap
-Patch212:       golang-1.5-bootstrap-binary-path.patch
 
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
@@ -276,9 +296,6 @@ Requires:       %{name} = %{version}-%{release}
 
 # increase verbosity of build
 %patch0 -p1 -b .verbose
-
-# use the arch dependent path in the bootstrap
-%patch212 -p1 -b .bootstrap
 
 %patch215 -p1 -b .time
 
@@ -535,6 +552,9 @@ fi
 %endif
 
 %changelog
+* Tue Apr 18 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.8git33c3477
+- bump to 33c34770398af5b4de54f5a0922763bd10dc2915
+
 * Fri Mar 31 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.7git5a45a15
 - bump to 5a45a157f2e94cb3fec38a3be8afa3bffd800067
 
