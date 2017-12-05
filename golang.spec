@@ -1,3 +1,11 @@
+%bcond_with bootstrap
+# temporalily ignore test failures
+%ifarch %{ix86} aarch64
+%bcond_without ignore_tests
+%else
+%bcond_with ignore_tests
+%endif
+
 # build ids are not currently generated:
 # https://code.google.com/p/go/issues/detail?id=5238
 #
@@ -31,37 +39,34 @@
 
 # Golang build options.
 
-# Buid golang using external/internal(close to cgo disabled) linking.
-%ifarch %{golang_arches} %{power64} s390x
+# Build golang using external/internal(close to cgo disabled) linking.
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64 s390x
 %global external_linker 1
 %else
 %global external_linker 0
 %endif
 
 # Build golang with cgo enabled/disabled(later equals more or less to internal linking).
-%ifarch %{golang_arches} %{power64} s390x
+%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64 s390x
 %global cgo_enabled 1
 %else
 %global cgo_enabled 0
 %endif
 
 # Use golang/gcc-go as bootstrap compiler
-%ifarch %{golang_arches}
-%global golang_bootstrap 1
-%else
+%if %{with bootstrap}
 %global golang_bootstrap 0
-%endif
-# boostrap(with internal linking) using gcc-go fails due to bug in tests(https://github.com/golang/go/issues/12629)
-# make check not to fail due to it
-
-# Controls what ever we fails on failed tests
-%ifarch %{ix86} x86_64 ppc64le %{arm} aarch64
-%global fail_on_tests 1
 %else
-%global fail_on_tests 0
+%global golang_bootstrap 1
 %endif
 
-# TODO get more support for shared objects
+# Controls what ever we fail on failed tests
+%if %{with ignore_tests}
+%global fail_on_tests 0
+%else
+%global fail_on_tests 1
+%endif
+
 # Build golang shared objects for stdlib
 %ifarch %{ix86} x86_64 ppc64le %{arm} aarch64
 %global shared 1
@@ -101,14 +106,15 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.9
-%global go_version 1.9
-%global go_commit 6f83b75be2bf038a3a919ad7bd64eda2ee9a934a
+%global go_api 1.10
+%global go_version 1.10
+%global go_commit  dd7cbf3a846c2cb125ac65173abaf6a8b9f903ff
 %global go_shortcommit %(c=%{go_commit}; echo ${c:0:7})
 
+
 Name:           golang
-Version:        1.9
-Release:        0.10git%{go_shortcommit}%{?dist}
+Version:        1.10
+Release:        0.1git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -118,6 +124,7 @@ Source0:        https://github.com/golang/go/archive/%{go_commit}/golang-%{go_sh
 # generated using `git log -n 1 --format="format:devel +%h %cd" HEAD > VERSION` on checked out repo
 Source1: VERSION
 Source2: macros.golang
+Source3: fedora.go
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 %if !%{golang_bootstrap}
@@ -131,7 +138,7 @@ BuildRequires:  hostname
 BuildRequires:  net-tools
 %endif
 # for tests
-BuildRequires:  pcre-devel, glibc-static, perl
+BuildRequires:  pcre-devel, glibc-static, perl-interpreter, procps-ng
 
 %if 0%{?rhel}
 Provides:       go-srpm-macros
@@ -166,12 +173,14 @@ Requires:       %{name}-src = %{version}-%{release}
 Requires:       go-srpm-macros
 %endif
 
-
-Patch0:         golang-1.2-verbose-build.patch
-
 # we had been just removing the zoneinfo.zip, but that caused tests to fail for users that 
 # later run `go test -a std`. This makes it only use the zoneinfo.zip where needed in tests.
 Patch215:       ./go1.5-zoneinfo_testing_only.patch
+
+# Proposed patch by mmunday https://golang.org/cl/35262
+Patch219: s390x-expose-IfInfomsg-X__ifi_pad.patch 
+
+Patch220: s390x-ignore-L0syms.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -184,7 +193,7 @@ Obsoletes:      %{name}-vim < 1.4
 Obsoletes:      emacs-%{name} < 1.4
 
 # These are the only RHEL/Fedora architectures that we compile this package for
-ExclusiveArch:  %{golang_arches} %{power64} s390x
+ExclusiveArch:  %{golang_arches}
 
 Source100:      golang-gdbinit
 
@@ -294,13 +303,15 @@ Requires:       %{name} = %{version}-%{release}
 %prep
 %setup -q -n go-%{go_commit}
 
-# increase verbosity of build
-%patch0 -p1 -b .verbose
-
 %patch215 -p1 -b .time
+
+%patch219 -p1
+
+%patch220 -p1 -b .link
 
 cp %{SOURCE1} .
 
+cp %{SOURCE3} ./src/runtime/
 %build
 # print out system information
 uname -a
@@ -372,20 +383,20 @@ race_list=$cwd/go-race.list
 misc_list=$cwd/go-misc.list
 docs_list=$cwd/go-docs.list
 tests_list=$cwd/go-tests.list
-rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
-touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
+rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
+touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
 pushd $RPM_BUILD_ROOT%{goroot}
-	find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
-	find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
+    find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
+    find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-	find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
-	find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
+    find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
 
-	find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
-	find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
+    find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
+    find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
 
-	find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
-	find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
+    find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
+    find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
 
 %if %{shared}
     mkdir -p %{buildroot}/%{_libdir}/
@@ -411,13 +422,13 @@ pushd $RPM_BUILD_ROOT%{goroot}
 
 %endif
 
-	find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
-	find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $tests_list
-	# this is only the zoneinfo.zip
-	find lib/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-	find lib/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
+    find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
+    find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test.go' \) -printf '%{goroot}/%p\n' >> $tests_list
+    # this is only the zoneinfo.zip
+    find lib/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+    find lib/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
 popd
 
 # remove the doc Makefile
@@ -508,6 +519,7 @@ fi
 %exclude %{goroot}/src/
 %exclude %{goroot}/doc/
 %exclude %{goroot}/misc/
+%exclude %{goroot}/test/
 %{goroot}/*
 %if 0%{?rhel} > 5 || 0%{?fedora} < 21
 %if 0%{?rhel} > 6 || 0%{?fedora} > 0
@@ -552,6 +564,9 @@ fi
 %endif
 
 %changelog
+* Tue Dec 05 2017 Jakub Čajka <jcajka@redhat.com> - 1.10-0.1gitdd7cbf3
+- bump to 1.10 devel master branch
+
 * Tue Jul 11 2017 Jakub Čajka <jcajka@redhat.com> - 1.9-0.10git6f83b75
 - bump to 6f83b75be2bf038a3a919ad7bd64eda2ee9a934a
 

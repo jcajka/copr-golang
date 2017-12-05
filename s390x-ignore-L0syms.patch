@@ -1,0 +1,17 @@
+diff -up go-dd7cbf3a846c2cb125ac65173abaf6a8b9f903ff/src/cmd/link/internal/loadelf/ldelf.go.link go-dd7cbf3a846c2cb125ac65173abaf6a8b9f903ff/src/cmd/link/internal/loadelf/ldelf.go
+--- go-dd7cbf3a846c2cb125ac65173abaf6a8b9f903ff/src/cmd/link/internal/loadelf/ldelf.go.link	2017-12-05 01:10:10.000000000 +0100
++++ go-dd7cbf3a846c2cb125ac65173abaf6a8b9f903ff/src/cmd/link/internal/loadelf/ldelf.go	2017-12-05 13:43:15.985177097 +0100
+@@ -779,6 +779,13 @@ func Load(arch *sys.Arch, syms *sym.Symb
+ 				continue
+ 			}
+ 
++			if elfsym.name == ".debug_str" && elfsym.name == "L0^A" && elfsym.type_ == 0 {
++				// introduced by https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=49fced1206db40c71208c201165d65f92c69cebe on s390x
++				// TODO investigate from where they are actually coming from, could be possible issue with elf parsing as seeing 0x1 in name is weird
++				// See issue https://github.com/golang/go/issues/20996
++				continue
++			}
++
+ 			if strings.HasPrefix(elfsym.name, ".LASF") { // gcc on s390x does this
+ 				continue
+ 			}
