@@ -114,7 +114,7 @@
 
 Name:           golang
 Version:        1.10
-Release:        0.1git%{go_shortcommit}%{?dist}
+Release:        0.2git%{go_shortcommit}%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -138,7 +138,11 @@ BuildRequires:  hostname
 BuildRequires:  net-tools
 %endif
 # for tests
-BuildRequires:  pcre-devel, glibc-static, perl-interpreter, procps-ng
+BuildRequires:  pcre-devel, glibc-static, perl
+%if 0%{?rhel} < 6 || 0%{?fedora} > 0
+BuildRequires:  procps-ng
+%endif
+
 
 %if 0%{?rhel}
 Provides:       go-srpm-macros
@@ -564,6 +568,9 @@ fi
 %endif
 
 %changelog
+* Wed Dec 06 2017 Jakub Čajka <jcajka@redhat.com> - 1.10-0.2gitdd7cbf3
+- make the spec epel friendly
+
 * Tue Dec 05 2017 Jakub Čajka <jcajka@redhat.com> - 1.10-0.1gitdd7cbf3
 - bump to 1.10 devel master branch
 
